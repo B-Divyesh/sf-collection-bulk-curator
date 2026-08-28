@@ -196,6 +196,29 @@ test('serves accessible privacy and terms pages', async ({ page }) => {
   }
 });
 
+test('updates its service worker and reloads the complete shell offline without errors', async ({ page, context }) => {
+  const errors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.goto('/');
+  await page.evaluate(async () => {
+    const registration = await navigator.serviceWorker.ready;
+    await registration.update();
+    const worker = registration.installing;
+    if (worker) await new Promise<void>((resolve) => worker.addEventListener('statechange', () => {
+      if (worker.state === 'activated' || worker.state === 'redundant') resolve();
+    }));
+  });
+  if (!await page.evaluate(() => Boolean(navigator.serviceWorker.controller))) await page.reload();
+  await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+  await context.setOffline(true);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+  await expect(page.getByRole('status')).toContainText('Offline · local tools still work');
+  expect(errors).toEqual([]);
+  await context.setOffline(false);
+});
+
 test.describe('mobile workspace', () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test('keeps filters and staging reachable', async ({ page }) => {
