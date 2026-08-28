@@ -71,7 +71,20 @@ consumer installation, server concurrency, and database checks do not apply.
 
 ## Deployment and remaining work
 
-Push this repair on `main` to the repository's Azure Static Web Apps deployment
-configuration, then verify the public URL byte identity, response headers,
-checkout redirect, and offline update path against the resulting deployment.
-No known product gaps remain locally.
+Deployed to Azure Static Web Apps production on 2026-08-28 UTC with factory
+deployment ID `cce590a7-7baf-4215-958d-2b96a72f834f`; the configured custom
+domain is <https://collection-bulk-curator.sociobot.in>.
+
+Fresh public checks passed after deployment:
+
+- `index.html`, `assets/index-C_bR1aIn.js`, `assets/style-hwSBjhvY.css`,
+  `sw.js`, privacy, and terms byte-match `dist/` (for example, production JS
+  SHA-256 `734ab35114703e9ee5ffab0debb14f0c2f271f540456135aabdfbf398cf760cb`).
+- Root, CSP/HSTS/referrer/permissions/nosniff headers, immutable hashed-asset
+  cache policy, `sw.js` `no-cache`, and unknown-route 404 were verified.
+- Production checkout returns HTTP 303 to Dodo hosted checkout.
+- Live desktop and 390 px Chromium smoke workflows passed with zero browser
+  errors, including the repaired filter-selection flow on desktop. The live
+  URL check returned HTTP 200 in 569 ms with the expected semantic shell.
+
+No known product gaps remain.
