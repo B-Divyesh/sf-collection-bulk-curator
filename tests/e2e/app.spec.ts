@@ -241,8 +241,13 @@ test.describe('mobile workspace', () => {
     await expect(attachment).toBeVisible();
     const box = await attachment.boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
-    await page.locator('#image-files').setInputFiles({ name: 'card.png', mimeType: 'image/png', buffer: Buffer.from('local image bytes') });
+    await page.locator('#image-files').setInputFiles({
+      name: 'card.png',
+      mimeType: 'image/png',
+      buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64')
+    });
     await expect(page.locator('.item-image img')).toHaveAttribute('src', /^blob:/);
+    await expect.poll(() => page.locator('.item-image img').evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(1);
     await expect(page.locator('.toast')).toContainText('1 local thumbnail attached');
   });
 });
