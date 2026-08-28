@@ -63,8 +63,30 @@ npm run build
 ```
 
 Deployment target remains Azure Static Web Apps, with `dist/` as its static
-root and `dist/index.html` at that root. The deploy and live identity/header
-verification evidence is appended below once the repair artifact is live.
+root and `dist/index.html` at that root.
+
+## Deployment and live verification (2026-08-28 UTC)
+
+- Deployed the repaired `dist/` with
+  `/opt/fleet/lib/deploy-static.sh collection-bulk-curator dist`. Azure Static
+  Web Apps deployment `cdf1d939-0489-4be1-8f30-ce74e6675e4f` completed, and
+  `https://collection-bulk-curator.sociobot.in/` returned HTTPS 200.
+- Live `/opt/fleet/lib/verify-url.sh` passed in 733 ms with no console/page
+  errors, title/lang/main/one h1, zero missing image alts, and zero unlabeled
+  buttons.
+- Live `/index.html`, `/assets/index-CE92pazD.js`, the stylesheet, `/sw.js`,
+  `/privacy/index.html`, and `/terms/index.html` SHA-256 byte-match `dist/`.
+  The JS asset has one-year immutable caching, `sw.js` has `no-cache`, and the
+  document has 30-second revalidation.
+- Live response headers include CSP, HSTS, nosniff, strict-origin referrer
+  policy, and the restrictive permissions policy. A fresh browser session
+  made zero third-party requests through import and free workspace; free-mode
+  local storage remained empty.
+- Fresh live axe at 390 x 844 reports zero serious/critical findings on
+  import, dark mapping, dark workspace, privacy, and terms. The Desk Plus
+  summary name was explicitly confirmed as “Desk Plus license options”.
+- Live Lighthouse mobile: Performance 100, Accessibility 100, Best Practices
+  100, SEO 100; FCP 1.0 s, LCP 1.4 s, TBT 0 ms, CLS 0.
 
 ## Known gaps and next steps
 
