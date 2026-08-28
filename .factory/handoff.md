@@ -2,7 +2,7 @@
 
 ## Repair status
 
-The independent verifier's six findings in
+The independent verifier's seven findings in
 [`verification-3.md`](verification-3.md) for candidate
 `fc291527da19b8a0496484652afba58cd82fd914` are repaired in commit
 `f6c272f` (`fix: repair selection and workspace QA blockers`). The artifact
