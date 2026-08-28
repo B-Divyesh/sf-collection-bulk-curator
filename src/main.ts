@@ -8,6 +8,7 @@ const BILLING_BASE = import.meta.env.VITE_BILLING_API_BASE || 'https://api.socio
 const LICENSE_KEY = `sb_license:${PRODUCT_SLUG}`;
 const LICENSE_CACHE_KEY = `${LICENSE_KEY}:verdict`;
 const SESSION_KEY = `${PRODUCT_SLUG}:session`;
+const CATALOG_PAGE_SIZE = 120;
 
 type Screen = 'import' | 'mapping' | 'workspace';
 type Theme = 'light' | 'dark';
@@ -31,6 +32,7 @@ const state = {
   selection: new Set<string>(),
   changes: {} as Record<string, RowChanges>,
   batches: [] as ChangeBatch[],
+  renderLimit: CATALOG_PAGE_SIZE,
   query: '',
   filters: { location: '', condition: '', collection: '', staged: '' },
   localImages: new Map<string, string>(),
@@ -219,6 +221,7 @@ function itemCard(row: CatalogRow): string {
 
 function workspaceScreen(): string {
   const visible = visibleRows();
+  const rendered = visible.slice(0, state.renderLimit);
   const changedRows = Object.keys(state.changes).length;
   const changedFields = Object.values(state.changes).reduce((sum, fields) => sum + Object.keys(fields).length, 0);
   return shell(`<section class="workspace" aria-labelledby="page-title">
@@ -233,8 +236,9 @@ function workspaceScreen(): string {
       <button class="button text-button full" data-action="clear-filters">Clear filters</button>
     </aside>
     <section class="catalog" aria-labelledby="catalog-title">
-      <div class="catalog-toolbar"><div><button class="button secondary mobile-only" data-action="open-filters">${icon('filter')} Filters</button><p id="catalog-title"><b>${visible.length.toLocaleString()}</b> of ${state.rows.length.toLocaleString()} items</p></div><div><button class="text-button" data-action="select-visible">Select visible</button><button class="text-button" data-action="clear-selection" ${state.selection.size ? '' : 'disabled'}>Clear</button></div></div>
-      ${visible.length ? `<div class="item-grid">${visible.map(itemCard).join('')}</div>` : `<div class="empty-results">${icon('route')}<h2>No items at these coordinates</h2><p>Clear a filter or search for a broader term. Your staged edits are still safe.</p><button class="button secondary" data-action="clear-filters">Clear filters</button></div>`}
+      <h2 id="catalog-title" class="catalog-heading">Catalog items</h2>
+      <div class="catalog-toolbar"><div><button class="button secondary mobile-only" data-action="open-filters">${icon('filter')} Filters</button><p><b>${visible.length.toLocaleString()}</b> of ${state.rows.length.toLocaleString()} items</p></div><div><button class="text-button" data-action="select-visible">Select visible</button>${visible.length > rendered.length ? `<button class="text-button" data-action="select-matching">Select all matching</button>` : ''}<button class="text-button" data-action="clear-selection" ${state.selection.size ? '' : 'disabled'}>Clear</button></div></div>
+      ${visible.length ? `<p class="rendered-count">Showing ${rendered.length.toLocaleString()} of ${visible.length.toLocaleString()} matching items. ${visible.length > rendered.length ? 'Load more to inspect additional items before selecting them.' : ''}</p><div class="item-grid">${rendered.map(itemCard).join('')}</div>${visible.length > rendered.length ? `<button class="button secondary load-more" data-action="load-more">Show ${Math.min(CATALOG_PAGE_SIZE, visible.length - rendered.length).toLocaleString()} more items</button>` : ''}` : `<div class="empty-results">${icon('route')}<h2>No items at these coordinates</h2><p>Clear a filter or search for a broader term. Your staged edits are still safe.</p><button class="button secondary" data-action="clear-filters">Clear filters</button></div>`}
     </section>
     <aside class="ledger" aria-labelledby="ledger-title"><div class="rail-heading"><span>${icon('layers')}</span><div><p class="eyebrow">Change ledger</p><h2 id="ledger-title">Stage a field</h2></div><button class="icon-button compact-only" data-action="close-ledger" aria-label="Close change ledger">×</button></div>
       <p class="selection-count"><b>${state.selection.size.toLocaleString()}</b> selected item${state.selection.size === 1 ? '' : 's'}</p>
@@ -253,12 +257,25 @@ function workspaceScreen(): string {
   </section>`);
 }
 
-function render(): void {
+function focusSelector(element: Element | null = document.activeElement): string | null {
+  if (!(element instanceof HTMLElement)) return null;
+  if (element.id) return `#${CSS.escape(element.id)}`;
+  const selectionKey = element.dataset.selectKey;
+  if (selectionKey) return `[data-select-key="${CSS.escape(selectionKey)}"]`;
+  const action = element.dataset.action;
+  if (action) return `[data-action="${CSS.escape(action)}"]`;
+  const filter = element.dataset.filter;
+  if (filter) return `[data-filter="${CSS.escape(filter)}"]`;
+  return null;
+}
+
+function render(restoreFocus = focusSelector()): void {
   app.innerHTML = state.screen === 'import' ? importScreen() : state.screen === 'mapping' ? mappingScreen() : workspaceScreen();
   bindCommon();
   if (state.screen === 'import') bindImport();
   if (state.screen === 'mapping') bindMapping();
   if (state.screen === 'workspace') bindWorkspace();
+  if (restoreFocus) requestAnimationFrame(() => document.querySelector<HTMLElement>(restoreFocus)?.focus());
 }
 
 function announce(message: string): void {
@@ -323,12 +340,24 @@ function bindMapping(): void {
     if (duplicates.length) { announce(`Duplicate ID “${duplicates[0]}” would make a patch ambiguous. Make IDs unique first.`); return; }
     state.mapping = mapping;
     state.rows = parsed.rows.map((raw, sourceIndex) => ({ key: `${sourceIndex}:${raw[mapping.id]}`, sourceIndex, raw, id: raw[mapping.id] ?? '', title: raw[mapping.title] ?? '', image: raw[mapping.image] ?? '', tags: raw[mapping.tags] ?? '', location: raw[mapping.location] ?? '', condition: raw[mapping.condition] ?? '', collection: raw[mapping.collection] ?? '' }));
+    state.selection.clear(); state.renderLimit = CATALOG_PAGE_SIZE;
     state.screen = 'workspace'; render(); document.querySelector<HTMLElement>('#main')?.focus();
   });
 }
 
 function updateSelectionFromDom(): void {
   document.querySelectorAll<HTMLInputElement>('[data-select-key]').forEach((input) => { const key = input.dataset.selectKey!; if (input.checked) state.selection.add(key); else state.selection.delete(key); });
+}
+
+function resetVisibleScope(): boolean {
+  const hadSelection = state.selection.size > 0;
+  state.selection.clear();
+  state.renderLimit = CATALOG_PAGE_SIZE;
+  return hadSelection;
+}
+
+function announceScopeReset(hadSelection: boolean): void {
+  if (hadSelection) announce('Selection cleared because the visible results changed.');
 }
 
 function bindWorkspace(): void {
@@ -338,12 +367,14 @@ function bindWorkspace(): void {
   const ledgerRail = document.querySelector<HTMLElement>('.ledger');
   if (narrow && filtersRail) filtersRail.inert = true;
   if (compact && ledgerRail) ledgerRail.inert = true;
-  document.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (event) => { state.query = (event.target as HTMLInputElement).value; render(); requestAnimationFrame(() => { const search = document.querySelector<HTMLInputElement>('#search'); search?.focus(); search?.setSelectionRange(state.query.length, state.query.length); }); });
-  document.querySelectorAll<HTMLSelectElement>('[data-filter]').forEach((select) => select.addEventListener('change', () => { const key = select.dataset.filter as keyof typeof state.filters; state.filters[key] = select.value; render(); }));
+  document.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (event) => { state.query = (event.target as HTMLInputElement).value; const hadSelection = resetVisibleScope(); render(); requestAnimationFrame(() => { const search = document.querySelector<HTMLInputElement>('#search'); search?.focus(); search?.setSelectionRange(state.query.length, state.query.length); }); announceScopeReset(hadSelection); });
+  document.querySelectorAll<HTMLSelectElement>('[data-filter]').forEach((select) => select.addEventListener('change', () => { const key = select.dataset.filter as keyof typeof state.filters; state.filters[key] = select.value; const hadSelection = resetVisibleScope(); render(); announceScopeReset(hadSelection); }));
   document.querySelectorAll<HTMLInputElement>('[data-select-key]').forEach((input) => input.addEventListener('change', () => { updateSelectionFromDom(); render(); }));
-  document.querySelector<HTMLElement>('[data-action="select-visible"]')?.addEventListener('click', () => { visibleRows().forEach((row) => state.selection.add(row.key)); render(); announce(`${visibleRows().length} visible items selected.`); });
+  document.querySelector<HTMLElement>('[data-action="select-visible"]')?.addEventListener('click', () => { const rows = visibleRows().slice(0, state.renderLimit); rows.forEach((row) => state.selection.add(row.key)); render(); announce(`${rows.length} visible items selected.`); });
+  document.querySelector<HTMLElement>('[data-action="select-matching"]')?.addEventListener('click', () => { const rows = visibleRows(); rows.forEach((row) => state.selection.add(row.key)); render(); announce(`${rows.length} matching items selected.`); });
+  document.querySelector<HTMLElement>('[data-action="load-more"]')?.addEventListener('click', () => { state.renderLimit += CATALOG_PAGE_SIZE; render(); });
   document.querySelectorAll<HTMLElement>('[data-action="clear-selection"]').forEach((button) => button.addEventListener('click', () => { state.selection.clear(); render(); }));
-  document.querySelectorAll<HTMLElement>('[data-action="clear-filters"]').forEach((button) => button.addEventListener('click', () => { state.query = ''; state.filters = { location: '', condition: '', collection: '', staged: '' }; render(); }));
+  document.querySelectorAll<HTMLElement>('[data-action="clear-filters"]').forEach((button) => button.addEventListener('click', () => { state.query = ''; state.filters = { location: '', condition: '', collection: '', staged: '' }; const hadSelection = resetVisibleScope(); render(); announceScopeReset(hadSelection); }));
   document.querySelector<HTMLInputElement>('#remote-images')?.addEventListener('change', (event) => { state.remoteImages = (event.target as HTMLInputElement).checked; render(); });
   const field = document.querySelector<HTMLSelectElement>('#stage-field'); const operation = document.querySelector<HTMLSelectElement>('#stage-operation');
   const syncOperations = () => { if (!field || !operation) return; [...operation.options].forEach((option) => { option.hidden = field.value !== 'tags' && ['add', 'remove'].includes(option.value); }); if (field.value !== 'tags' && ['add', 'remove'].includes(operation.value)) operation.value = 'set'; const input = document.querySelector<HTMLInputElement>('#stage-value'); if (input) input.disabled = operation.value === 'clear'; };
@@ -369,9 +400,12 @@ function stageChanges(event: SubmitEvent): void {
   const form = new FormData(event.currentTarget as HTMLFormElement); const field = String(form.get('field')) as EditableField; const operation = String(form.get('operation')); const value = String(form.get('value') ?? '').trim();
   if (!state.selection.size) { announce('Select at least one item first.'); return; }
   if (operation !== 'clear' && !value) { announce('Enter a value to stage, or choose “Clear value”.'); return; }
+  const selectedRows = visibleRows().filter((row) => state.selection.has(row.key));
+  if (selectedRows.length !== state.selection.size) state.selection = new Set(selectedRows.map((row) => row.key));
+  if (!selectedRows.length) { render(); announce('Selection cleared because those items are no longer visible.'); return; }
   const previous: ChangeBatch['previous'] = [];
-  for (const key of state.selection) {
-    const row = state.rows.find((item) => item.key === key); if (!row) continue;
+  for (const row of selectedRows) {
+    const key = row.key;
     const before = row[field]; const current = currentValue(row, field); let after = value;
     if (field === 'tags' && operation === 'add') after = [...new Set([...splitTags(current), ...splitTags(value)])].join(', ');
     if (field === 'tags' && operation === 'remove') { const removes = new Set(splitTags(value).map((tag) => tag.toLocaleLowerCase())); after = splitTags(current).filter((tag) => !removes.has(tag.toLocaleLowerCase())).join(', '); }
@@ -381,7 +415,7 @@ function stageChanges(event: SubmitEvent): void {
     if (after === before) { delete state.changes[key]![field]; if (!Object.keys(state.changes[key]!).length) delete state.changes[key]; }
     else state.changes[key]![field] = { before, after };
   }
-  state.batches.push({ id: crypto.randomUUID(), keys: [...state.selection], field, previous, label: `${field} on ${state.selection.size} item${state.selection.size === 1 ? '' : 's'}` });
+  state.batches.push({ id: crypto.randomUUID(), keys: selectedRows.map((row) => row.key), field, previous, label: `${field} on ${selectedRows.length} item${selectedRows.length === 1 ? '' : 's'}` });
   state.selection.clear(); render(); persistSession(); announce(`Staged ${field} change. Source rows remain untouched.`);
 }
 
@@ -414,7 +448,8 @@ function attachImages(files: FileList | null): void {
 
 function resetDesk(): void {
   for (const url of state.localImages.values()) URL.revokeObjectURL(url);
-  state.screen = 'import'; state.fileName = ''; state.parsed = null; state.mapping = null; state.rows = []; state.selection.clear(); state.changes = {}; state.batches = []; state.query = ''; state.filters = { location: '', condition: '', collection: '', staged: '' }; state.localImages.clear(); render();
+  localStorage.removeItem(SESSION_KEY);
+  state.screen = 'import'; state.fileName = ''; state.parsed = null; state.mapping = null; state.rows = []; state.selection.clear(); state.changes = {}; state.batches = []; state.renderLimit = CATALOG_PAGE_SIZE; state.query = ''; state.filters = { location: '', condition: '', collection: '', staged: '' }; state.localImages.clear(); render();
 }
 
 function persistSession(): void {

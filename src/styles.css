@@ -114,6 +114,7 @@ label > small { display: block; color: var(--muted); font-weight: 400; margin-to
 .import-panel p { margin-bottom: 0; color: var(--muted); }
 .drop-zone { min-height: 150px; border: 2px dashed var(--line); display: grid; place-items: center; align-content: center; gap: .25rem; text-align: center; cursor: pointer; background-image: radial-gradient(circle, color-mix(in srgb, var(--line) 45%, transparent) 1px, transparent 1px); background-size: 16px 16px; }
 .drop-zone.dragging { border-color: var(--signal); background-color: color-mix(in srgb, var(--signal) 8%, var(--surface)); }
+.drop-zone:focus-within, .file-button:focus-within { outline: 3px solid var(--ochre); outline-offset: 3px; }
 .drop-zone input { position: absolute; width: 1px; height: 1px; opacity: 0; }
 .drop-zone small { color: var(--muted); font-weight: 400; }
 .drop-icon { color: var(--signal); }
@@ -164,10 +165,13 @@ th { background: var(--surface-2); font-size: .7rem; letter-spacing: .08em; text
 .switch-row { display: flex; align-items: center; gap: .7rem; margin-top: 1.25rem; font-size: .78rem; }
 .switch-row input { width: 20px; min-height: 20px; }
 .catalog { min-width: 0; padding: 1.25rem; background: color-mix(in srgb, var(--paper) 92%, var(--surface)); }
+.catalog-heading { margin: 0; font-size: 1.05rem; }
 .catalog-toolbar { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .catalog-toolbar > div { display: flex; align-items: center; gap: .4rem; }
 .catalog-toolbar p { margin: 0 .6rem 0 0; color: var(--muted); }
 .item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(218px, 1fr)); gap: 1rem; padding-top: 1rem; }
+.rendered-count { margin: .2rem 0 0; color: var(--muted); font-size: .78rem; }
+.load-more { margin: 1rem auto 0; }
 .item-card { position: relative; min-width: 0; border: 1px solid var(--line); background: var(--surface); transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
 .item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgb(24 51 45 / 9%); }
 .item-card.selected { border: 2px solid var(--moss); box-shadow: inset 0 0 0 2px var(--surface); }
@@ -205,7 +209,7 @@ th { background: var(--surface-2); font-size: .7rem; letter-spacing: .08em; text
 .ledger-entry b, .ledger-entry small { display: block; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ledger-entry b { font-size: .8rem; }
 .ledger-entry small { color: var(--muted); font-size: .65rem; }
-.ledger-entry .icon-button { width: 36px; height: 36px; border: 0; }
+.ledger-entry .icon-button { width: 44px; height: 44px; border: 0; }
 .export-zone { margin-top: 1.25rem; padding-top: 1.25rem; border-top: 2px dashed var(--line); }
 .export-zone .button { margin-top: .55rem; }
 .export-zone > p:last-child { margin: .7rem 0 0; color: var(--muted); font-size: .69rem; }

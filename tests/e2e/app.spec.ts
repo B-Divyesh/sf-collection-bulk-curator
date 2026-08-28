@@ -219,6 +219,79 @@ test('updates its service worker and reloads the complete shell offline without 
   await context.setOffline(false);
 });
 
+test('clears a selection before a changed filter can stage hidden rows', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.getByLabel('Collection', { exact: true }).selectOption('Field finds');
+  await page.getByRole('button', { name: 'Select visible' }).click();
+  await expect(page.getByText('11 selected items')).toBeVisible();
+
+  await page.getByLabel('Collection', { exact: true }).selectOption('Paper archive');
+  await expect(page.getByText('0 selected items')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Stage for 0 items' })).toBeDisabled();
+  await expect(page.locator('.toast')).toContainText('Selection cleared because the visible results changed');
+});
+
+test('keeps logical focus on an item checkbox after keyboard selection', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  const firstCheckbox = page.locator('[data-select-key]').first();
+  await firstCheckbox.focus();
+  await page.keyboard.press('Space');
+  await expect(firstCheckbox).toBeChecked();
+  await expect(firstCheckbox).toBeFocused();
+});
+
+test('gives transparent CSV and thumbnail inputs a visible label focus ring', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#csv-file').focus();
+  await expect(page.locator('#drop-zone')).toHaveCSS('outline-style', 'solid');
+
+  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.locator('#image-files').focus();
+  await expect(page.locator('.file-button')).toHaveCSS('outline-style', 'solid');
+});
+
+test('confirmed New catalog clears the saved Desk Plus session', async ({ page }) => {
+  await page.route('https://api.sociobot.in/api/v1/products/collection-bulk-curator/verify?*', (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' })
+  }));
+  await page.goto('/?license=valid-test-token');
+  await expect(page.locator('.license-menu summary span')).toHaveText('Plus active');
+  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.locator('[data-select-key]').first().check();
+  await page.getByLabel('New value').fill('Archive room');
+  await page.getByRole('button', { name: 'Stage for 1 item' }).click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).not.toBeNull();
+  page.once('dialog', (dialog) => dialog.accept());
+  await page.getByRole('button', { name: 'New catalog' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+  expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBeNull();
+  await expect(page.getByRole('button', { name: /Resume local desk/ })).toHaveCount(0);
+});
+
+test('progressively renders a thousand-row catalog while preserving bulk selection', async ({ page }) => {
+  const rows = Array.from({ length: 1_000 }, (_, index) => `${String(index + 1).padStart(4, '0')},Item ${index + 1},Archive`).join('\n');
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.locator('#csv-file').setInputFiles({ name: 'large.csv', mimeType: 'text/csv', buffer: Buffer.from(`ID,Title,Collection\n${rows}`) });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await expect(page.locator('.item-card')).toHaveCount(120);
+  await expect(page.getByText('Showing 120 of 1,000 matching items.')).toBeVisible();
+  const interactionMs = await page.getByRole('button', { name: 'Select all matching' }).evaluate((button) => new Promise<number>((resolve) => {
+    const start = performance.now();
+    button.addEventListener('click', () => requestAnimationFrame(() => requestAnimationFrame(() => resolve(performance.now() - start))), { once: true });
+    (button as HTMLButtonElement).click();
+  }));
+  expect(interactionMs).toBeLessThan(200);
+  await expect(page.getByText('1,000 selected items')).toBeVisible();
+  await expect(page.locator('.item-card')).toHaveCount(120);
+});
+
 test.describe('mobile workspace', () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test('keeps filters and staging reachable', async ({ page }) => {
@@ -231,6 +304,22 @@ test.describe('mobile workspace', () => {
     await page.locator('[data-select-key]').first().check();
     await page.getByRole('button', { name: 'Stage changes' }).click();
     await expect(page.getByRole('heading', { name: 'Stage a field' })).toBeVisible();
+  });
+
+  test('keeps the mobile staged-change removal target at least 44px and headings in order', async ({ page }) => {
+    await page.goto('/');
+    await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+    await page.getByRole('button', { name: /Open review desk/ }).click();
+    await page.locator('[data-select-key]').first().check();
+    await page.getByRole('button', { name: 'Stage changes' }).click();
+    await page.getByLabel('New value').fill('Archive room');
+    await page.getByRole('button', { name: 'Stage for 1 item' }).click();
+    const remove = page.locator('[data-remove-change]');
+    const box = await remove.boundingBox();
+    expect(box?.width).toBeGreaterThanOrEqual(44);
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+    const results = await new AxeBuilder({ page: page as never }).analyze();
+    expect(results.violations.find((item) => item.id === 'heading-order')).toBeUndefined();
   });
 
   test('keeps local thumbnail attachment reachable and functional', async ({ page }) => {
