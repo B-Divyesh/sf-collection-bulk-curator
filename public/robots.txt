@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://collection-bulk-curator.sociobot.in/sitemap.xml
