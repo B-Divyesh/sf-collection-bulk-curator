@@ -36,12 +36,12 @@ The exact deploy command is `npm run build`. It produces `dist/index.html` plus 
 
 ## CSV behavior
 
-CSV parsing supports UTF-8 BOMs, quoted commas, escaped quotes, and multiline fields. The first row must contain unique headings. The mapping screen requires a unique non-empty item ID and permits optional title, thumbnail, tags, location, condition, and collection columns. Thumbnails may be attached as multiple local image files and are matched against the mapped image filename.
+CSV parsing supports UTF-8 BOMs, quoted commas, escaped quotes, and multiline fields. The first row must contain unique headings. The mapping screen requires a unique nonblank item ID, rejects reuse of a source column across semantic fields, and permits optional title, thumbnail, tags, location, condition, and collection columns. Thumbnails may be attached as multiple local image files and are matched against the mapped image filename on desktop or mobile.
 
 Patch and undo exports contain the mapped ID heading and every field changed anywhere in the batch. For a row where one of those columns was not changed, its current value is included, making the output rectangular and safe for spreadsheet review.
 
 ## Privacy and licensing
 
-The app has no analytics, ads, cookies, remote fonts, or third-party scripts. Local storage holds the theme, an optional license token and daily verification cache, and—only for an active Desk Plus license—the resumable workspace. Checkout and license verification use the Sociobot billing API; no product IDs or payment-provider integrations are embedded. Staging defaults to `https://pilot-api.sociobot.in/api/v1`; release builds set `VITE_BILLING_API_BASE=https://api.sociobot.in/api/v1`.
+The app has no analytics, ads, cookies, remote fonts, or third-party scripts. Local storage holds the theme, an optional license token and daily verification cache, and—only for an active Desk Plus license—the resumable workspace. Checkout and license verification use the production Sociobot billing API by default; no payment-provider integration is embedded. A staging build can explicitly set `VITE_BILLING_API_BASE=https://pilot-api.sociobot.in/api/v1`.
 
 The source is MIT licensed. The generated illustration provenance and full visual specification are in [`.factory/design.md`](.factory/design.md).

@@ -1,4 +1,4 @@
-const CACHE = 'collection-batch-desk-v1';
+const CACHE = 'collection-batch-desk-v2';
 const SHELL = ['/', '/index.html', '/legal.css', '/privacy/', '/terms/', '/assets/survey-desk.webp', '/assets/survey-desk-640.webp'];
 self.addEventListener('install', (event) => event.waitUntil((async () => {
   const cache = await caches.open(CACHE);

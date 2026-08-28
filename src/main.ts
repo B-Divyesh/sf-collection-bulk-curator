@@ -1,9 +1,10 @@
 import './styles.css';
 import { parseCsv, suggestColumn, toCsv, type ParsedCsv } from './csv';
+import { buildChangeExport, mappingConflict, unsafeIdCount } from './catalog';
 import { editableFields, type CatalogRow, type ChangeBatch, type ColumnMap, type EditableField, type FieldChange, type RowChanges } from './types';
 
 const PRODUCT_SLUG = 'collection-bulk-curator';
-const BILLING_BASE = import.meta.env.VITE_BILLING_API_BASE || 'https://pilot-api.sociobot.in/api/v1';
+const BILLING_BASE = import.meta.env.VITE_BILLING_API_BASE || 'https://api.sociobot.in/api/v1';
 const LICENSE_KEY = `sb_license:${PRODUCT_SLUG}`;
 const LICENSE_CACHE_KEY = `${LICENSE_KEY}:verdict`;
 const SESSION_KEY = `${PRODUCT_SLUG}:session`;
@@ -312,11 +313,13 @@ function bindMapping(): void {
     const data = new FormData(event.currentTarget as HTMLFormElement);
     const mapping = Object.fromEntries(['id', 'title', 'image', 'tags', 'location', 'condition', 'collection'].map((key) => [key, String(data.get(key) ?? '')])) as unknown as ColumnMap;
     if (!mapping.id) { announce('Choose the column that contains item IDs.'); return; }
+    const conflict = mappingConflict(mapping);
+    if (conflict) { announce(conflict); return; }
     const parsed = state.parsed!;
     const ids = parsed.rows.map((row) => row[mapping.id] ?? '');
-    const blanks = ids.filter((id) => id === '').length;
+    const blanks = unsafeIdCount(parsed.rows, mapping.id);
     const duplicates = ids.filter((id, index) => id !== '' && ids.indexOf(id) !== index);
-    if (blanks) { announce(`${blanks} row${blanks === 1 ? '' : 's'} have a blank ID. Fill them in before safe patching.`); return; }
+    if (blanks) { announce(`${blanks} row${blanks === 1 ? ' has' : 's have'} a blank ID. Fill them in before safe patching.`); return; }
     if (duplicates.length) { announce(`Duplicate ID “${duplicates[0]}” would make a patch ambiguous. Make IDs unique first.`); return; }
     state.mapping = mapping;
     state.rows = parsed.rows.map((raw, sourceIndex) => ({ key: `${sourceIndex}:${raw[mapping.id]}`, sourceIndex, raw, id: raw[mapping.id] ?? '', title: raw[mapping.title] ?? '', image: raw[mapping.image] ?? '', tags: raw[mapping.tags] ?? '', location: raw[mapping.location] ?? '', condition: raw[mapping.condition] ?? '', collection: raw[mapping.collection] ?? '' }));
@@ -389,12 +392,13 @@ function undoLastBatch(): void {
 }
 
 function exportChanges(undo: boolean): void {
-  const idHeader = state.mapping!.id;
-  const activeFields = editableFields.filter((field) => Object.values(state.changes).some((changes) => changes[field]));
-  const headers = [idHeader, ...activeFields.map((field) => state.mapping![field] || field)];
-  const rows = state.rows.filter((row) => state.changes[row.key]).map((row) => Object.fromEntries([[idHeader, row.id], ...activeFields.map((field) => [state.mapping![field] || field, state.changes[row.key]?.[field] ? (undo ? state.changes[row.key]![field]!.before : state.changes[row.key]![field]!.after) : currentValue(row, field)])]));
-  const stem = state.fileName.replace(/\.csv$/i, '') || 'collection'; const suffix = undo ? 'undo' : 'patch'; download(`${stem}-${suffix}-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(headers, rows), 'text/csv;charset=utf-8');
-  announce(`${undo ? 'Undo manifest' : 'Patch'} exported with ${rows.length} row${rows.length === 1 ? '' : 's'}.`);
+  try {
+    const output = buildChangeExport(state.mapping!, state.rows, state.changes, undo);
+    const stem = state.fileName.replace(/\.csv$/i, '') || 'collection'; const suffix = undo ? 'undo' : 'patch'; download(`${stem}-${suffix}-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(output.headers, output.rows), 'text/csv;charset=utf-8');
+    announce(`${undo ? 'Undo manifest' : 'Patch'} exported with ${output.rows.length} row${output.rows.length === 1 ? '' : 's'}.`);
+  } catch (error) {
+    announce(error instanceof Error ? error.message : 'The export could not be created safely.');
+  }
 }
 
 function download(name: string, content: string, type: string): void {
