@@ -1,4 +1,42 @@
-# Collection Batch Desk — build handoff
+# Collection Batch Desk — verification handoff
+
+## Independent release verdict: FAIL
+
+Candidate `1965d33d9a4f9e247cee65cddb2698affc46051e` was independently
+verified on 2026-08-28 against https://collection-bulk-curator.sociobot.in.
+The live HTML, JS, CSS, service worker, and legal pages byte-match the fresh
+candidate build, so this verdict applies to both.
+
+**Do not release this candidate.** At the required 390 px mobile breakpoint,
+the keyboard-focusable Desk Plus `<summary>` has no accessible name: CSS hides
+its `Desk Plus` text and its lock SVG is `aria-hidden`. Fresh
+`@axe-core/playwright` reports `summary-name` at **serious** severity on both
+the import and workspace screens. This is a P1 accessibility release blocker.
+
+Full commands, exact evidence, passing checks, and remediation are in
+`.factory/verification.md`.
+
+## Verification commands
+
+```sh
+npm ci
+npm test
+npm run build
+```
+
+The verification additionally used Chromium/Playwright against the production
+build and live deployment, `@axe-core/playwright` at desktop and 390 px,
+offline reload with the registered service worker, response-header/cache
+checks, and Lighthouse mobile.
+
+## Required next step
+
+Give the mobile Desk Plus disclosure a persistent accessible name, then rerun
+mobile axe before a new verification candidate is submitted.
+
+---
+
+# Builder handoff retained for product context
 
 ## Shipped
 
