@@ -77,7 +77,7 @@ function shell(content: string): string {
         <span class="offline-chip ${state.online ? 'is-hidden' : ''}" role="status">Offline · local tools still work</span>
         <button class="icon-button" type="button" data-action="theme" aria-label="Use ${state.theme === 'light' ? 'dark' : 'light'} theme">${icon(state.theme === 'light' ? 'moon' : 'sun')}</button>
         <details class="license-menu">
-          <summary>${state.licenseValid ? icon('check') : icon('lock')} <span>${state.licenseValid ? 'Plus active' : 'Desk Plus'}</span></summary>
+          <summary aria-label="Desk Plus license options">${state.licenseValid ? icon('check') : icon('lock')} <span>${state.licenseValid ? 'Plus active' : 'Desk Plus'}</span></summary>
           ${licensePanel()}
         </details>
       </div>
@@ -165,7 +165,7 @@ function mappingScreen(): string {
       <label><span>Collection</span><select name="collection">${optionList(defaults.collection)}</select></label>
       <div class="mapping-submit"><p>${parsed.rows.length.toLocaleString()} rows detected in <b>${esc(state.fileName)}</b>.</p><button class="button primary" type="submit">Open review desk →</button></div>
     </form>
-    <section class="sample-table" aria-labelledby="sample-title"><h2 id="sample-title">Source preview</h2><div class="table-scroll"><table><thead><tr>${parsed.headers.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sample.map((row) => `<tr>${parsed.headers.map((h) => `<td>${esc(row[h])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>
+    <section class="sample-table" aria-labelledby="sample-title"><h2 id="sample-title">Source preview</h2><div class="table-scroll" tabindex="0" aria-label="Scrollable source preview table"><table><thead><tr>${parsed.headers.map((h) => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${sample.map((row) => `<tr>${parsed.headers.map((h) => `<td>${esc(row[h])}</td>`).join('')}</tr>`).join('')}</tbody></table></div></section>
   </section>`);
 }
 

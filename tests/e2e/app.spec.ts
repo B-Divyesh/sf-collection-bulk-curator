@@ -51,6 +51,44 @@ test('has no serious accessibility violations on import and workspace', async ({
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 });
 
+test.describe('390 px accessibility regression coverage', () => {
+  test.use({ viewport: { width: 390, height: 844 } });
+
+  test('keeps Desk Plus named while its visible label is compacted', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.locator('.license-menu > summary')).toHaveAccessibleName('Desk Plus license options');
+
+    let results = await new AxeBuilder({ page: page as never }).analyze();
+    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+
+    await page.getByRole('button', { name: 'Use dark theme' }).click();
+    results = await new AxeBuilder({ page: page as never }).analyze();
+    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+
+    await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+    await expect(page.locator('.license-menu > summary')).toHaveAccessibleName('Desk Plus license options');
+    const sourcePreview = page.getByLabel('Scrollable source preview table');
+    await expect(sourcePreview).toHaveAttribute('tabindex', '0');
+    await sourcePreview.focus();
+    await expect(sourcePreview).toBeFocused();
+    results = await new AxeBuilder({ page: page as never }).analyze();
+    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+
+    await page.getByRole('button', { name: /Open review desk/ }).click();
+    await expect(page.locator('.license-menu > summary')).toHaveAccessibleName('Desk Plus license options');
+    results = await new AxeBuilder({ page: page as never }).analyze();
+    expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+  });
+
+  test('has no serious accessibility violations on legal pages', async ({ page }) => {
+    for (const path of ['/privacy/', '/terms/']) {
+      await page.goto(path);
+      const results = await new AxeBuilder({ page: page as never }).analyze();
+      expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+    }
+  });
+});
+
 test('serves accessible privacy and terms pages', async ({ page }) => {
   for (const path of ['/privacy/', '/terms/']) {
     await page.goto(path);
