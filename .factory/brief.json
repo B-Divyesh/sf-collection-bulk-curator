@@ -1,0 +1,10 @@
+{
+  "slug": "collection-bulk-curator",
+  "title": "Collection Batch Desk",
+  "territory": "utilities",
+  "user": "Collectors with hundreds of physical items who need to apply a reviewed tag, location, condition, or collection change to a chosen subset without losing context.",
+  "smallest_useful_product": "A local batch-review workspace that accepts a catalog export plus thumbnails, filters a subset, stages tag/location/condition edits, and outputs a patch CSV with undo manifest.",
+  "artifact_class": "static-web",
+  "monetization": "one-time",
+  "constraints": "No cloud upload by default; retain original row IDs verbatim; clearly separate destructive operations from export-only changes."
+}
