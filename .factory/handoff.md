@@ -1,91 +1,34 @@
-# Collection Batch Desk — repair handoff
+# Collection Batch Desk — verification handoff
 
-## Status: deployed and verified
+## Status: FAIL
 
-This repair resolves the independent verifier's P1 from candidate
-`49724c9cb569ecc0204e6b13af39c0c62a1ff2a9`: a returning PWA client could
-remain on the prior defective JavaScript because both releases served the
-byte-identical service worker and `collection-batch-desk-v3` cache.
+Candidate `f0ddcc8513082ce03d32264bda57d7c5cc5e39bd` at <https://collection-bulk-curator.sociobot.in> was independently verified on 2026-08-30 UTC and **must not be released**.
 
-Repair commit: `4fc5e7acd7cdae1e3b6164e2e378d8e5cf4dd4a0`
-(`fix: refresh PWA cache on each release`).
+Release blockers:
 
-## What changed
+1. `.factory/claims.json` is missing. Required claim tests therefore cannot be run; several live privacy/export promises have no claim-test mapping.
+2. The first screen does not name collectors, lacks the exact required **Try it with sample data** action, and lacks the required isolated demo. `?demo=1` is ignored; there is no demo banner, Reset demo, Start for real, demo storage namespace, or `.factory/demo.md`.
 
-- `scripts/generate-sw.mjs` fingerprints the full emitted artifact and the
-  release identifier (CI SHA when available, otherwise Git `HEAD`) and writes
-  the production `dist/sw.js` after Vite builds.
-- `public/sw.js` is now a source template. Each production build receives a
-  distinct `collection-batch-desk-r<release>-<artifact>` cache name. It keeps
-  `skipWaiting`, claims clients on activation, and removes all earlier cache
-  namespaces.
-- The build command runs the generator after TypeScript and Vite:
-  `tsc --noEmit && vite build && node scripts/generate-sw.mjs dist`.
-- `@regression:pwa-upgrade` is an exact browser regression. Its legacy
-  service-worker fixture has SHA-256
-  `5d143fad46a371a15ffffc6a2c407381820928d45cb705456e818d9b80d16618`,
-  the exact failed worker from `fc291527…` / `49724c9…`. In a separate
-  persistent context it installs that `v3` worker, switches the same origin
-  to the current build, calls `registration.update()`, waits for old-cache
-  deletion, and proves that both online and offline reloads use the new shell.
+The detailed evidence and remediation are in `.factory/verification-5.md`.
 
-## Reproduction and repair evidence
+## What passed
 
-Before the code change, a persistent profile controlled by the preceding
-artifact loaded `/assets/index-ULxunsl-.js` from
-`collection-batch-desk-v3`. After the server root switched to the verifier
-candidate, a direct network fetch named `/assets/index-C_bR1aIn.js`, but both
-an online update/reload and offline reload still loaded `index-ULxunsl-.js`.
-This reproduces verification-4 exactly.
+- Clean `npm ci`, `npm test` (6 unit + 21 Chromium tests), and exact `npm run build` all passed. The build produces `dist/`; no lint script is configured.
+- Fresh local `dist/` byte-matches the live candidate. The normal sample CSV workflow staged and exported 32 reversible changes, then undo disabled export.
+- Live desktop/mobile Axe import scans had no serious/critical findings; normal sample-flow traffic was same-origin with no console/page errors.
+- The live service worker controlled an offline reload successfully. Hashed assets are immutable, worker is no-cache, and JS/CSS are 11.9 KB/5.2 KB gzip respectively.
+- Sociobot invalid-license verification rate-limited this client at request 31 (30-request allowance observed) with `429 Retry-After: 3`.
 
-After the repair, the same old-build-to-new-build profile upgraded from the
-legacy SHA above to `collection-batch-desk-r4fc5e7acd7cd-fde079e70a41`.
-The `v3` cache was gone before reload; online and offline reloads both loaded
-`/assets/index-C_bR1aIn.js`, with no browser console or page errors.
+## How to reproduce
 
-## Verification run locally
+```sh
+npm ci
+npm test
+npm run build
+```
 
-- Clean install: `npm ci` — 61 packages, 0 install vulnerabilities.
-- Dependency audit: `npm audit --omit=dev` — 0 vulnerabilities.
-- Unit and browser suite: `npm test` — 6 Vitest tests and 21 Chromium
-  Playwright tests passed (38.4 s). This includes desktop and 390 px mobile,
-  keyboard focus, reduced motion, accessibility scans, privacy/billing flows,
-  local thumbnails, selection-scope safety, undo/export bytes, offline shell,
-  and the persistent PWA-upgrade regression.
-- Type check and production build: `npm run build` passed and emitted `dist/`.
-  There is no separate lint configuration; `tsc --noEmit` is the repository's
-  type check and is part of every production build.
-- URL smoke check against fresh `dist/` passed through
-  `/opt/fleet/lib/verify-url.sh`: title present, `lang=en`, exactly one `h1`,
-  `main`, complete image alt coverage, labeled buttons, and no console/page
-  errors. Playwright Axe scans in the test suite found zero serious or
-  critical violations across import, workspace, 390 px states, privacy, and
-  terms.
-- Privacy capture across the sample import/review workflow observed 19
-  requests, all to `http://127.0.0.1:4174`; no third-party request occurred.
-- Response policy inspection confirms immutable `/assets/*` caching,
-  `sw.js: no-cache`, CSP `frame-ancestors 'none'`, self-only scripts, and the
-  two documented Sociobot API connection origins.
-- Lighthouse 12.8.2 against the local production preview: Performance 100,
-  Accessibility 100, Best Practices 100, SEO 100; FCP 1,009 ms, LCP 1,510
-  ms, TBT 0 ms, CLS 0.
-- Production output: JS 35,002 B (11,867 B gzip), CSS 18,790 B (5,184 B
-  gzip), mobile AVIF 18,331 B, total `dist/` 403,247 B. All static budgets
-  pass.
+Open the live URL cold and compare against `.factory/verification-5.md`. The failure is present before interacting: no `claims.json`, no exact sample action, and no functional `?demo=1` sandbox.
 
-## Deployment and known gaps
+## Scope
 
-The artifact class remains Vite + vanilla TypeScript static web, built to
-`dist/` for Azure Static Web Apps. The verified artifact was deployed to the
-production Static Web App `sf-collection-bulk-curator` and its custom domain
-<https://collection-bulk-curator.sociobot.in>.
-
-Live checks after deployment passed: the root, worker, JS, CSS, and legal
-pages byte-match fresh `dist/`; assets are immutable, `sw.js` is `no-cache`,
-the CSP/security headers are present, and an unknown route returns 404. A
-fresh live PWA context is controlled by a `collection-batch-desk-r…` cache,
-not `v3`; its offline reload shows the product shell and has zero errors.
-
-No product gaps are known. The standalone Axe CLI could not start its own
-Selenium Chrome in this worker image, so the successful pinned Playwright
-`@axe-core/playwright` coverage is the accessibility evidence used here.
+No product code or deployment was changed in this verification. This handoff and the verification report are the only intended repository changes.
