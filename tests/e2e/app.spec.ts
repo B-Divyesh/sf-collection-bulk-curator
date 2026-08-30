@@ -1,7 +1,52 @@
 import { expect, test } from '@playwright/test';
 import type { Download } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { createServer } from 'node:http';
+import { readFile, stat } from 'node:fs/promises';
+import { join, normalize, resolve } from 'node:path';
+
+const contentTypes: Record<string, string> = {
+  '.avif': 'image/avif', '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8', '.svg': 'image/svg+xml', '.webp': 'image/webp'
+};
+
+async function startPwaUpgradeServer(): Promise<{ url: string; useCurrentBuild: () => void; close: () => Promise<void> }> {
+  let root = resolve('tests/fixtures/pwa-v3');
+  const currentBuildRoot = resolve('dist');
+  const server = createServer(async (request, response) => {
+    try {
+      const pathname = new URL(request.url ?? '/', 'http://127.0.0.1').pathname;
+      const relativePath = normalize(decodeURIComponent(pathname === '/' ? '/index.html' : pathname)).replace(/^[/\\]+/, '');
+      if (!relativePath || relativePath.startsWith('..') || relativePath.includes('\0')) throw new Error('Unsafe path');
+      let file = join(root, relativePath);
+      if ((await stat(file)).isDirectory()) file = join(file, 'index.html');
+      const extension = file.slice(file.lastIndexOf('.'));
+      response.writeHead(200, {
+        'cache-control': pathname === '/sw.js' ? 'no-cache' : 'no-store',
+        'content-type': contentTypes[extension] ?? 'application/octet-stream'
+      });
+      response.end(await readFile(file));
+    } catch {
+      response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+      response.end('Not found');
+    }
+  });
+  await new Promise<void>((resolveListen, rejectListen) => {
+    server.once('error', rejectListen);
+    server.listen(0, '127.0.0.1', () => {
+      server.off('error', rejectListen);
+      resolveListen();
+    });
+  });
+  const address = server.address();
+  if (!address || typeof address === 'string') throw new Error('PWA regression server did not receive a TCP port.');
+  return {
+    url: `http://127.0.0.1:${address.port}`,
+    useCurrentBuild: () => { root = currentBuildRoot; },
+    close: () => new Promise((resolveClose, rejectClose) => server.close((error) => error ? rejectClose(error) : resolveClose()))
+  };
+}
 
 async function downloadedText(download: Download): Promise<string> {
   const path = await download.path();
@@ -217,6 +262,50 @@ test('updates its service worker and reloads the complete shell offline without 
   await expect(page.getByRole('status')).toContainText('Offline · local tools still work');
   expect(errors).toEqual([]);
   await context.setOffline(false);
+});
+
+test('@regression:pwa-upgrade replaces a persistent v3 client before its offline reload', async ({ browser }) => {
+  test.setTimeout(60_000);
+  const legacyWorker = await readFile(resolve('tests/fixtures/pwa-v3/sw.js'));
+  expect(createHash('sha256').update(legacyWorker).digest('hex')).toBe('5d143fad46a371a15ffffc6a2c407381820928d45cb705456e818d9b80d16618');
+  const server = await startPwaUpgradeServer();
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  const errors: string[] = [];
+  page.on('console', (message) => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('pageerror', (error) => errors.push(error.message));
+  try {
+    await page.goto(`${server.url}/`, { waitUntil: 'networkidle' });
+    if (!await page.evaluate(() => Boolean(navigator.serviceWorker.controller))) await page.reload({ waitUntil: 'networkidle' });
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Previous PWA shell');
+    expect(await page.evaluate(() => caches.keys())).toEqual(['collection-batch-desk-v3']);
+
+    server.useCurrentBuild();
+    const directNetworkHtml = await (await fetch(`${server.url}/`)).text();
+    expect(directNetworkHtml).toMatch(/\/assets\/index-[^"]+\.js/);
+    expect(directNetworkHtml).not.toContain('Previous PWA shell');
+
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.getRegistration();
+      if (!registration) throw new Error('Expected legacy service-worker registration.');
+      await registration.update();
+    });
+    await expect.poll(() => page.evaluate(async () => {
+      const keys = await caches.keys();
+      return keys.length === 1 && keys[0] !== 'collection-batch-desk-v3' && keys[0]?.startsWith('collection-batch-desk-r');
+    })).toBe(true);
+
+    await page.reload({ waitUntil: 'networkidle' });
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+    await context.setOffline(true);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+    expect(errors).toEqual([]);
+  } finally {
+    await context.close();
+    await server.close();
+  }
 });
 
 test('clears a selection before a changed filter can stage hidden rows', async ({ page }) => {

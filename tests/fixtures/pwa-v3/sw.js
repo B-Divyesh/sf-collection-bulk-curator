@@ -1,6 +1,4 @@
-// This template is fingerprinted and written to dist/sw.js for each build.
-// Do not serve this source template as a production service worker.
-const CACHE = 'collection-batch-desk-__CACHE_VERSION__';
+const CACHE = 'collection-batch-desk-v3';
 const SHELL = [
   '/',
   '/index.html',
