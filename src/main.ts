@@ -8,6 +8,7 @@ const BILLING_BASE = import.meta.env.VITE_BILLING_API_BASE || 'https://api.socio
 const LICENSE_KEY = `sb_license:${PRODUCT_SLUG}`;
 const LICENSE_CACHE_KEY = `${LICENSE_KEY}:verdict`;
 const SESSION_KEY = `${PRODUCT_SLUG}:session`;
+const DEMO_SESSION_KEY = `demo:${PRODUCT_SLUG}:session`;
 const CATALOG_PAGE_SIZE = 120;
 
 type Screen = 'import' | 'mapping' | 'workspace';
@@ -22,6 +23,7 @@ interface SavedSession {
   mapping: ColumnMap;
   changes: Record<string, RowChanges>;
 }
+interface DemoSession extends SavedSession { batches: ChangeBatch[] }
 
 const state = {
   screen: 'import' as Screen,
@@ -41,7 +43,8 @@ const state = {
   licenseValid: false,
   licenseChecking: false,
   online: navigator.onLine,
-  theme: (localStorage.getItem('cbd-theme') as Theme | null) ?? 'light'
+  theme: (localStorage.getItem('cbd-theme') as Theme | null) ?? 'light',
+  demo: new URL(location.href).searchParams.get('demo') === '1'
 };
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -85,6 +88,7 @@ function shell(content: string): string {
         </details>
       </div>
     </header>
+    ${state.demo ? `<aside class="demo-banner" aria-label="Demo mode"><p><b>Demo — sample data, nothing is saved</b><small>The sample stays separate from your real desk.</small></p><div><button class="text-button" type="button" data-action="reset-demo">Reset demo</button><button class="button secondary" type="button" data-action="start-real">Start for real</button></div></aside>` : ''}
     <main id="main" tabindex="-1">${content}</main>
     <footer>
       <span>Your catalog stays in this browser. Generated field-desk illustration.</span>
@@ -110,10 +114,10 @@ function importScreen(): string {
   const saved = readSavedSession();
   return shell(`<section class="hero" aria-labelledby="page-title">
     <div class="hero-copy">
-      <p class="eyebrow"><span>01</span> Establish territory</p>
-      <h1 id="page-title">Change the right items.<br><em>See every mark first.</em></h1>
-      <p class="lede">Bring a catalog CSV and optional thumbnails. Filter a precise subset, stage tags or collection details, then take away a patch and its undo map.</p>
-      <div class="trust-row"><span>${icon('lock')} Never uploaded</span><span>${icon('route')} IDs kept verbatim</span><span>${icon('undo')} Undo manifest included</span></div>
+      <p class="eyebrow"><span>01</span> Start</p>
+      <h1 id="page-title">Stage bulk catalog edits safely</h1>
+      <p class="lede">For collectors updating a chosen subset without losing the original catalog.</p>
+      <div class="trust-row"><span>${icon('lock')} Catalog stays in your browser</span><span>${icon('route')} Works offline after first visit</span><span>${icon('lock')} $19 once for Desk Plus</span></div>
       ${saved && state.licenseValid ? `<button type="button" class="saved-session" data-action="restore-session"><span><b>Resume local desk</b><small>${esc(saved.fileName)} · saved ${new Date(saved.savedAt).toLocaleString()}</small></span><span aria-hidden="true">→</span></button>` : ''}
     </div>
     <figure class="hero-art">
@@ -122,23 +126,24 @@ function importScreen(): string {
         <source type="image/webp" srcset="/assets/survey-desk-640.webp 640w, /assets/survey-desk.webp 1200w" sizes="(max-width: 760px) 92vw, 48vw">
         <img src="/assets/survey-desk.webp" width="1200" height="800" alt="Illustrated survey desk with a contour map, specimen cards, red pins, and a change ledger" fetchpriority="high" decoding="async">
       </picture>
-      <figcaption>Map the subset. Mark the change. Keep the way back.</figcaption>
+      <figcaption>Illustration of a local catalog review desk.</figcaption>
     </figure>
     <section class="import-panel" aria-labelledby="import-heading">
-      <div><p class="eyebrow"><span>02</span> Open a local export</p><h2 id="import-heading">Choose your catalog CSV</h2><p>Nothing leaves this device. You will map its columns before any work begins.</p></div>
+      <div><p class="eyebrow"><span>02</span> Import</p><h2 id="import-heading">Choose your catalog CSV</h2><p>Map columns, stage changes, then export a patch CSV and undo CSV.</p></div>
       <label class="drop-zone" id="drop-zone">
         <input id="csv-file" type="file" accept=".csv,text/csv" />
         <span class="drop-icon">${icon('download')}</span><strong>Drop CSV here or browse</strong><small>UTF-8 CSV · first row must be headings</small>
       </label>
       <div class="import-aside">
-        <button class="button secondary" type="button" data-action="demo">Try a 32-item sample</button>
+        <button class="button primary" type="button" data-action="demo">Try it with sample data</button>
+        <p class="demo-action-note">Loads 32 sample items in the review desk.</p>
         <p><b>Optional thumbnails</b><br>Select image files after the CSV. They are matched by filename and stay local.</p>
       </div>
     </section>
   </section>
   <section class="method" aria-labelledby="method-title">
-    <p class="eyebrow">A safer route through bulk editing</p><h2 id="method-title">Three bearings, one reversible result</h2>
-    <ol><li><span>01</span><div><b>Narrow the territory</b><p>Search titles and IDs, then cross-filter the collection, location, and condition.</p></div></li><li><span>02</span><div><b>Review each survey pin</b><p>Select only visible results and stage one field at a time. Source rows remain untouched.</p></div></li><li><span>03</span><div><b>Carry both routes out</b><p>Export the forward patch and an undo CSV containing every original value.</p></div></li></ol>
+    <p class="eyebrow">How it works</p><h2 id="method-title">Review, stage, and export</h2>
+    <ol><li><span>01</span><div><b>Filter items</b><p>Search titles and IDs. Then filter collection, location, or condition.</p></div></li><li><span>02</span><div><b>Stage field changes</b><p>Select visible items. Stage one field at a time. Source rows stay unchanged.</p></div></li><li><span>03</span><div><b>Export both files</b><p>Export a patch CSV and an undo CSV with the original values.</p></div></li></ol>
   </section>`);
 }
 
@@ -157,7 +162,7 @@ function mappingScreen(): string {
   const optionList = (value: string, optional = true) => `${optional ? '<option value="">Not included</option>' : '<option value="">Choose a column</option>'}${parsed.headers.map((header) => `<option value="${esc(header)}" ${header === value ? 'selected' : ''}>${esc(header)}</option>`).join('')}`;
   const sample = parsed.rows.slice(0, 3);
   return shell(`<section class="map-page" aria-labelledby="page-title">
-    <div class="section-heading"><div><p class="eyebrow"><span>02</span> Set coordinates</p><h1 id="page-title">Map your catalog columns</h1><p>Tell the desk which headings carry identity and editable details. Your original headings and values are not rewritten.</p></div><button class="button text-button" data-action="back-import">← Choose another file</button></div>
+    <div class="section-heading"><div><p class="eyebrow"><span>02</span> Map columns</p><h1 id="page-title">Map your catalog columns</h1><p>Choose the headings for IDs and editable details. Original headings and values are not rewritten.</p></div><button class="button text-button" data-action="back-import">← Choose another file</button></div>
     <form id="mapping-form" class="mapping-grid">
       <label><span>Item ID <b>Required</b></span><select name="id" required>${optionList(defaults.id, false)}</select><small>Exported exactly as supplied, including leading zeros.</small></label>
       <label><span>Display title</span><select name="title">${optionList(defaults.title)}</select></label>
@@ -225,8 +230,8 @@ function workspaceScreen(): string {
   const changedRows = Object.keys(state.changes).length;
   const changedFields = Object.values(state.changes).reduce((sum, fields) => sum + Object.keys(fields).length, 0);
   return shell(`<section class="workspace" aria-labelledby="page-title">
-    <div class="workspace-title"><div><p class="eyebrow"><span>03</span> Survey desk · ${esc(state.fileName)}</p><h1 id="page-title">Review the territory</h1></div><div class="desk-actions"><label class="button secondary file-button">${icon('image')} Add thumbnails<input id="image-files" type="file" accept="image/*" multiple></label><button class="button text-button" data-action="new-catalog">New catalog</button></div></div>
-    <aside class="filters" aria-labelledby="filter-title"><div class="rail-heading"><span>${icon('filter')}</span><div><p class="eyebrow">Bearings</p><h2 id="filter-title">Filter items</h2></div><button class="icon-button mobile-only" data-action="close-filters" aria-label="Close filters">×</button></div>
+    <div class="workspace-title"><div><p class="eyebrow"><span>03</span> Review desk · ${esc(state.fileName)}</p><h1 id="page-title">Review catalog items</h1></div><div class="desk-actions"><label class="button secondary file-button">${icon('image')} Add thumbnails<input id="image-files" type="file" accept="image/*" multiple></label><button class="button text-button" data-action="new-catalog">New catalog</button></div></div>
+    <aside class="filters" aria-labelledby="filter-title"><div class="rail-heading"><span>${icon('filter')}</span><div><p class="eyebrow">Filters</p><h2 id="filter-title">Filter items</h2></div><button class="icon-button mobile-only" data-action="close-filters" aria-label="Close filters">×</button></div>
       <label for="search">Search everything</label><input id="search" type="search" value="${esc(state.query)}" placeholder="Title, ID, tag…">
       <label for="collection-filter">Collection</label><select id="collection-filter" data-filter="collection">${valueOptions('collection')}</select>
       <label for="location-filter">Location</label><select id="location-filter" data-filter="location">${valueOptions('location')}</select>
@@ -238,9 +243,9 @@ function workspaceScreen(): string {
     <section class="catalog" aria-labelledby="catalog-title">
       <h2 id="catalog-title" class="catalog-heading">Catalog items</h2>
       <div class="catalog-toolbar"><div><button class="button secondary mobile-only" data-action="open-filters">${icon('filter')} Filters</button><p><b>${visible.length.toLocaleString()}</b> of ${state.rows.length.toLocaleString()} items</p></div><div><button class="text-button" data-action="select-visible">Select visible</button>${visible.length > rendered.length ? `<button class="text-button" data-action="select-matching">Select all matching</button>` : ''}<button class="text-button" data-action="clear-selection" ${state.selection.size ? '' : 'disabled'}>Clear</button></div></div>
-      ${visible.length ? `<p class="rendered-count">Showing ${rendered.length.toLocaleString()} of ${visible.length.toLocaleString()} matching items. ${visible.length > rendered.length ? 'Load more to inspect additional items before selecting them.' : ''}</p><div class="item-grid">${rendered.map(itemCard).join('')}</div>${visible.length > rendered.length ? `<button class="button secondary load-more" data-action="load-more">Show ${Math.min(CATALOG_PAGE_SIZE, visible.length - rendered.length).toLocaleString()} more items</button>` : ''}` : `<div class="empty-results">${icon('route')}<h2>No items at these coordinates</h2><p>Clear a filter or search for a broader term. Your staged edits are still safe.</p><button class="button secondary" data-action="clear-filters">Clear filters</button></div>`}
+      ${visible.length ? `<p class="rendered-count">Showing ${rendered.length.toLocaleString()} of ${visible.length.toLocaleString()} matching items. ${visible.length > rendered.length ? 'Load more to inspect additional items before selecting them.' : ''}</p><div class="item-grid">${rendered.map(itemCard).join('')}</div>${visible.length > rendered.length ? `<button class="button secondary load-more" data-action="load-more">Show ${Math.min(CATALOG_PAGE_SIZE, visible.length - rendered.length).toLocaleString()} more items</button>` : ''}` : `<div class="empty-results">${icon('route')}<h2>No items match these filters</h2><p>Clear a filter or search for a broader term. Staged edits are still safe.</p><button class="button secondary" data-action="clear-filters">Clear filters</button></div>`}
     </section>
-    <aside class="ledger" aria-labelledby="ledger-title"><div class="rail-heading"><span>${icon('layers')}</span><div><p class="eyebrow">Change ledger</p><h2 id="ledger-title">Stage a field</h2></div><button class="icon-button compact-only" data-action="close-ledger" aria-label="Close change ledger">×</button></div>
+    <aside class="ledger" aria-labelledby="ledger-title"><div class="rail-heading"><span>${icon('layers')}</span><div><p class="eyebrow">Changes</p><h2 id="ledger-title">Stage a field</h2></div><button class="icon-button compact-only" data-action="close-ledger" aria-label="Close change ledger">×</button></div>
       <p class="selection-count"><b>${state.selection.size.toLocaleString()}</b> selected item${state.selection.size === 1 ? '' : 's'}</p>
       <form id="stage-form">
         <label for="stage-field">Field</label><select id="stage-field" name="field">${editableFields.map((field) => `<option value="${field}">${field[0]?.toUpperCase()}${field.slice(1)}</option>`).join('')}</select>
@@ -251,7 +256,7 @@ function workspaceScreen(): string {
       <div class="ledger-summary"><div><span>Changed rows</span><b>${changedRows}</b></div><div><span>Field edits</span><b>${changedFields}</b></div></div>
       ${state.batches.length ? `<button class="button secondary full" data-action="undo-batch">${icon('undo')} Undo “${esc(state.batches.at(-1)?.label)}”</button>` : ''}
       <div class="ledger-list">${Object.entries(state.changes).slice(-8).reverse().map(([key, fields]) => { const row = state.rows.find((item) => item.key === key)!; return `<div class="ledger-entry"><div><b>${esc(row.title || row.id)}</b><small>ID ${esc(row.id)} · ${Object.keys(fields).join(', ')}</small></div><button class="icon-button" data-remove-change="${esc(key)}" aria-label="Remove all staged changes for ${esc(row.title || row.id)}">×</button></div>`; }).join('')}${changedRows > 8 ? `<p class="micro">+ ${changedRows - 8} more changed rows</p>` : ''}</div>
-      <div class="export-zone"><p class="eyebrow"><span>04</span> Take out both routes</p><button class="button primary full" data-action="export-patch" ${changedRows ? '' : 'disabled'}>${icon('download')} Export patch CSV</button><button class="button secondary full" data-action="export-undo" ${changedRows ? '' : 'disabled'}>${icon('undo')} Export undo CSV</button><p>Exports contain only item ID and changed fields. The undo file contains original values.</p></div>
+      <div class="export-zone"><p class="eyebrow"><span>04</span> Export files</p><button class="button primary full" data-action="export-patch" ${changedRows ? '' : 'disabled'}>${icon('download')} Export patch CSV</button><button class="button secondary full" data-action="export-undo" ${changedRows ? '' : 'disabled'}>${icon('undo')} Export undo CSV</button><p>Exports contain only item ID and changed fields. The undo file contains original values.</p></div>
     </aside>
     ${state.selection.size ? `<div class="mobile-selection"><span><b>${state.selection.size}</b> selected</span><button class="button signal" data-action="open-ledger">Stage changes</button></div>` : ''}
   </section>`);
@@ -288,11 +293,142 @@ function announce(message: string): void {
   }
 }
 
+function sampleCatalog(): ParsedCsv {
+  const conditions = ['Excellent', 'Good', 'Needs care'];
+  const locations = ['Map drawer', 'Cabinet B', 'Display shelf'];
+  const collections = ['Field finds', 'Studio ceramics', 'Paper archive'];
+  const rows = Array.from({ length: 32 }, (_, index) => ({
+    ID: String(index + 1).padStart(4, '0'),
+    Title: `${['Glazed vessel', 'Survey token', 'Pressed specimen', 'Archive print'][index % 4]} ${index + 1}`,
+    Tags: index % 3 ? 'reviewed, catalogued' : 'uncatalogued',
+    Location: locations[index % 3]!,
+    Condition: conditions[index % 3]!,
+    Collection: collections[index % 3]!,
+    Image: index === 0 ? 'https://images.example.invalid/sample-vessel.png' : ''
+  }));
+  return { headers: Object.keys(rows[0]!), rows };
+}
+
+function sampleMapping(): ColumnMap {
+  return { id: 'ID', title: 'Title', image: 'Image', tags: 'Tags', location: 'Location', condition: 'Condition', collection: 'Collection' };
+}
+
+function rowsFromParsed(parsed: ParsedCsv, mapping: ColumnMap): CatalogRow[] {
+  return parsed.rows.map((raw, sourceIndex) => ({
+    key: `${sourceIndex}:${raw[mapping.id]}`,
+    sourceIndex,
+    raw,
+    id: raw[mapping.id] ?? '',
+    title: raw[mapping.title] ?? '',
+    image: raw[mapping.image] ?? '',
+    tags: raw[mapping.tags] ?? '',
+    location: raw[mapping.location] ?? '',
+    condition: raw[mapping.condition] ?? '',
+    collection: raw[mapping.collection] ?? ''
+  }));
+}
+
+function clearDeskData(): void {
+  for (const url of state.localImages.values()) URL.revokeObjectURL(url);
+  state.screen = 'import';
+  state.fileName = '';
+  state.parsed = null;
+  state.mapping = null;
+  state.rows = [];
+  state.selection.clear();
+  state.changes = {};
+  state.batches = [];
+  state.renderLimit = CATALOG_PAGE_SIZE;
+  state.query = '';
+  state.filters = { location: '', condition: '', collection: '', staged: '' };
+  state.localImages.clear();
+  state.remoteImages = false;
+}
+
+function loadDemoDesk(session: DemoSession | null = null): void {
+  const parsed = session ? { headers: session.headers, rows: session.sourceRows } : sampleCatalog();
+  const mapping = session?.mapping ?? sampleMapping();
+  state.fileName = session?.fileName ?? 'sample-collection.csv';
+  state.parsed = parsed;
+  state.mapping = mapping;
+  state.rows = rowsFromParsed(parsed, mapping);
+  state.selection.clear();
+  state.changes = session?.changes ?? {};
+  state.batches = session?.batches ?? [];
+  state.renderLimit = CATALOG_PAGE_SIZE;
+  state.query = '';
+  state.filters = { location: '', condition: '', collection: '', staged: '' };
+  state.localImages.clear();
+  state.remoteImages = false;
+  state.screen = 'workspace';
+}
+
+function readDemoSession(): DemoSession | null {
+  try { return JSON.parse(localStorage.getItem(DEMO_SESSION_KEY) ?? 'null') as DemoSession | null; } catch { return null; }
+}
+
+function persistDemoSession(): void {
+  if (!state.parsed || !state.mapping) return;
+  const saved: DemoSession = {
+    savedAt: Date.now(),
+    fileName: state.fileName,
+    headers: state.parsed.headers,
+    sourceRows: state.parsed.rows,
+    mapping: state.mapping,
+    changes: state.changes,
+    batches: state.batches
+  };
+  try { localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(saved)); } catch { announce('The demo reset because this browser could not keep its sample state.'); }
+}
+
+function demoUrl(): string {
+  const url = new URL(location.href);
+  url.searchParams.delete('license');
+  url.searchParams.set('demo', '1');
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function enterDemo(pushHistory = true): void {
+  state.demo = true;
+  state.licenseValid = false;
+  loadDemoDesk(readDemoSession());
+  if (pushHistory) history.pushState({}, '', demoUrl());
+  render();
+  persistDemoSession();
+  document.querySelector<HTMLElement>('#main')?.focus();
+  announce('Sample catalog opened in the demo desk.');
+}
+
+function resetDemo(): void {
+  localStorage.removeItem(DEMO_SESSION_KEY);
+  state.demo = true;
+  loadDemoDesk();
+  history.replaceState({}, '', demoUrl());
+  render();
+  persistDemoSession();
+  document.querySelector<HTMLElement>('#main')?.focus();
+  announce('Demo reset to the 32-item sample catalog.');
+}
+
+function startForReal(): void {
+  localStorage.removeItem(DEMO_SESSION_KEY);
+  state.demo = false;
+  clearDeskData();
+  const url = new URL(location.href);
+  url.searchParams.delete('demo');
+  history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
+  render();
+  document.querySelector<HTMLElement>('#main')?.focus();
+  announce('Demo data discarded. Choose your catalog CSV to start for real.');
+}
+
 function bindCommon(): void {
   document.querySelectorAll<HTMLElement>('[data-action="home"]').forEach((el) => el.addEventListener('click', (event) => { event.preventDefault(); if (state.screen === 'workspace' && Object.keys(state.changes).length && !confirm('Leave this desk? Exported files are safe, but unstored staged edits will be cleared.')) return; resetDesk(); }));
   document.querySelector<HTMLElement>('[data-action="theme"]')?.addEventListener('click', () => { state.theme = state.theme === 'light' ? 'dark' : 'light'; localStorage.setItem('cbd-theme', state.theme); document.documentElement.dataset.theme = state.theme; render(); });
-  document.querySelector<HTMLFormElement>('#license-form')?.addEventListener('submit', async (event) => { event.preventDefault(); const token = (document.querySelector<HTMLInputElement>('#license-token')?.value ?? '').trim(); if (!token) return; localStorage.setItem(LICENSE_KEY, token); await verifyLicense(token, true); });
+  document.querySelector<HTMLFormElement>('#license-form')?.addEventListener('submit', async (event) => { event.preventDefault(); const token = (document.querySelector<HTMLInputElement>('#license-token')?.value ?? '').trim(); if (!token || state.demo) return; localStorage.setItem(LICENSE_KEY, token); await verifyLicense(token, true); });
   document.querySelector<HTMLElement>('[data-action="forget-license"]')?.addEventListener('click', () => { localStorage.removeItem(LICENSE_KEY); localStorage.removeItem(LICENSE_CACHE_KEY); state.licenseValid = false; render(); announce('License removed from this device.'); });
+  document.querySelector<HTMLElement>('[data-action="reset-demo"]')?.addEventListener('click', resetDemo);
+  document.querySelector<HTMLElement>('[data-action="start-real"]')?.addEventListener('click', startForReal);
 }
 
 async function loadCsvFile(file: File): Promise<void> {
@@ -315,11 +451,7 @@ function bindImport(): void {
   for (const eventName of ['dragenter', 'dragover']) drop.addEventListener(eventName, (event) => { event.preventDefault(); drop.classList.add('dragging'); });
   for (const eventName of ['dragleave', 'drop']) drop.addEventListener(eventName, (event) => { event.preventDefault(); drop.classList.remove('dragging'); });
   drop.addEventListener('drop', (event) => { const file = event.dataTransfer?.files[0]; if (file) void loadCsvFile(file); });
-  document.querySelector<HTMLElement>('[data-action="demo"]')?.addEventListener('click', () => {
-    const conditions = ['Excellent', 'Good', 'Needs care']; const locations = ['Map drawer', 'Cabinet B', 'Display shelf']; const collections = ['Field finds', 'Studio ceramics', 'Paper archive'];
-    const rows = Array.from({ length: 32 }, (_, index) => ({ ID: String(index + 1).padStart(4, '0'), Title: ['Glazed vessel', 'Survey token', 'Pressed specimen', 'Archive print'][index % 4] + ` ${index + 1}`, Tags: index % 3 ? 'reviewed, catalogued' : 'uncatalogued', Location: locations[index % 3]!, Condition: conditions[index % 3]!, Collection: collections[index % 3]!, Image: '' }));
-    state.parsed = { headers: Object.keys(rows[0]!), rows }; state.fileName = 'sample-collection.csv'; state.mapping = null; state.screen = 'mapping'; render();
-  });
+  document.querySelector<HTMLElement>('[data-action="demo"]')?.addEventListener('click', () => enterDemo());
   document.querySelector<HTMLElement>('[data-action="restore-session"]')?.addEventListener('click', restoreSession);
 }
 
@@ -339,7 +471,7 @@ function bindMapping(): void {
     if (blanks) { announce(`${blanks} row${blanks === 1 ? ' has' : 's have'} a blank ID. Fill them in before safe patching.`); return; }
     if (duplicates.length) { announce(`Duplicate ID “${duplicates[0]}” would make a patch ambiguous. Make IDs unique first.`); return; }
     state.mapping = mapping;
-    state.rows = parsed.rows.map((raw, sourceIndex) => ({ key: `${sourceIndex}:${raw[mapping.id]}`, sourceIndex, raw, id: raw[mapping.id] ?? '', title: raw[mapping.title] ?? '', image: raw[mapping.image] ?? '', tags: raw[mapping.tags] ?? '', location: raw[mapping.location] ?? '', condition: raw[mapping.condition] ?? '', collection: raw[mapping.collection] ?? '' }));
+    state.rows = rowsFromParsed(parsed, mapping);
     state.selection.clear(); state.renderLimit = CATALOG_PAGE_SIZE;
     state.screen = 'workspace'; render(); document.querySelector<HTMLElement>('#main')?.focus();
   });
@@ -447,25 +579,28 @@ function attachImages(files: FileList | null): void {
 }
 
 function resetDesk(): void {
-  for (const url of state.localImages.values()) URL.revokeObjectURL(url);
+  if (state.demo) { resetDemo(); return; }
   localStorage.removeItem(SESSION_KEY);
-  state.screen = 'import'; state.fileName = ''; state.parsed = null; state.mapping = null; state.rows = []; state.selection.clear(); state.changes = {}; state.batches = []; state.renderLimit = CATALOG_PAGE_SIZE; state.query = ''; state.filters = { location: '', condition: '', collection: '', staged: '' }; state.localImages.clear(); render();
+  clearDeskData();
+  render();
 }
 
 function persistSession(): void {
+  if (state.demo) { persistDemoSession(); return; }
   if (!state.licenseValid || !state.parsed || !state.mapping) return;
   try { const saved: SavedSession = { savedAt: Date.now(), fileName: state.fileName, headers: state.parsed.headers, sourceRows: state.parsed.rows, mapping: state.mapping, changes: state.changes }; localStorage.setItem(SESSION_KEY, JSON.stringify(saved)); }
   catch { announce('This catalog is too large for local session restore. Exports still work normally.'); }
 }
 
 function readSavedSession(): SavedSession | null {
+  if (state.demo) return null;
   try { return JSON.parse(localStorage.getItem(SESSION_KEY) ?? 'null') as SavedSession | null; } catch { return null; }
 }
 
 function restoreSession(): void {
   const saved = readSavedSession(); if (!saved) return;
   state.fileName = saved.fileName; state.parsed = { headers: saved.headers, rows: saved.sourceRows }; state.mapping = saved.mapping; state.changes = saved.changes;
-  state.rows = saved.sourceRows.map((raw, sourceIndex) => ({ key: `${sourceIndex}:${raw[saved.mapping.id]}`, sourceIndex, raw, id: raw[saved.mapping.id] ?? '', title: raw[saved.mapping.title] ?? '', image: raw[saved.mapping.image] ?? '', tags: raw[saved.mapping.tags] ?? '', location: raw[saved.mapping.location] ?? '', condition: raw[saved.mapping.condition] ?? '', collection: raw[saved.mapping.collection] ?? '' })); state.screen = 'workspace'; render(); announce('Local desk restored. Reattach thumbnail files if needed.');
+  state.rows = rowsFromParsed(state.parsed, saved.mapping); state.screen = 'workspace'; render(); announce('Local desk restored. Reattach thumbnail files if needed.');
 }
 
 async function verifyLicense(token: string, force = false): Promise<void> {
@@ -483,6 +618,7 @@ async function verifyLicense(token: string, force = false): Promise<void> {
 }
 
 function initializeLicense(): void {
+  if (state.demo) return;
   const url = new URL(location.href); const received = url.searchParams.get('license');
   if (received) { localStorage.setItem(LICENSE_KEY, received); url.searchParams.delete('license'); history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`); }
   const token = received || localStorage.getItem(LICENSE_KEY); if (token) void verifyLicense(token, Boolean(received));
@@ -490,7 +626,13 @@ function initializeLicense(): void {
 
 window.addEventListener('online', () => { state.online = true; render(); announce('Back online. Local work was not interrupted.'); });
 window.addEventListener('offline', () => { state.online = false; render(); announce('You are offline. This desk and your local files still work.'); });
+window.addEventListener('popstate', () => {
+  const wantsDemo = new URL(location.href).searchParams.get('demo') === '1';
+  if (wantsDemo && !state.demo) enterDemo(false);
+  if (!wantsDemo && state.demo) startForReal();
+});
 
+if (state.demo) { loadDemoDesk(readDemoSession()); persistDemoSession(); }
 render();
 initializeLicense();
 if ('serviceWorker' in navigator && import.meta.env.PROD) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => undefined));

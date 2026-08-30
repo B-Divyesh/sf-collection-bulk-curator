@@ -1,0 +1,58 @@
+[
+  {
+    "id": "local-data",
+    "claim": "Catalog data stays in the browser by default",
+    "where": "landing facts, README, privacy notice",
+    "test": "npm test -- --grep @claim:local-data",
+    "sandbox": "fresh demo browser context; stage a sample edit; assert all requests are same-origin and no real desk session is written"
+  },
+  {
+    "id": "remote-thumbnails",
+    "claim": "Remote thumbnails stay off until explicitly enabled",
+    "where": "workspace remote-thumbnail control, README, privacy notice",
+    "test": "npm test -- --grep @claim:remote-thumbnails",
+    "sandbox": "demo entry point with a fixture remote image; assert no initial request, then assert one request only after opt-in"
+  },
+  {
+    "id": "exact-ids",
+    "claim": "Keeps IDs exactly as supplied",
+    "where": "README, column-mapping help",
+    "test": "npm test -- --grep @claim:exact-ids",
+    "sandbox": "demo entry point; stage the item with ID 0001; assert exact patch bytes"
+  },
+  {
+    "id": "patch-csv",
+    "claim": "Exports a patch CSV for staged edits",
+    "where": "landing import copy, README, export button",
+    "test": "npm test -- --grep @claim:patch-csv",
+    "sandbox": "demo entry point; stage one location edit; assert patch header and changed row"
+  },
+  {
+    "id": "undo-manifest",
+    "claim": "Exports an undo CSV with original values",
+    "where": "landing import copy, README, export button",
+    "test": "npm test -- --grep @claim:undo-manifest",
+    "sandbox": "demo entry point; stage one location edit; assert undo header and the original location"
+  },
+  {
+    "id": "demo-isolation",
+    "claim": "Demo sample data does not touch real desk storage",
+    "where": "demo banner, README, .factory/demo.md",
+    "test": "npm test -- --grep @claim:demo-isolation",
+    "sandbox": "seed a real-session sentinel; open ?demo=1; reset and exit; assert only demo: storage changes"
+  },
+  {
+    "id": "offline-reload",
+    "claim": "Works offline after the first visit",
+    "where": "landing facts",
+    "test": "npm test -- --grep @claim:offline-reload",
+    "sandbox": "dedicated fresh browser context; load ?demo=1, wait for service-worker control, go offline, and reload"
+  },
+  {
+    "id": "desk-plus-price",
+    "claim": "Desk Plus is a $19 one-time license",
+    "where": "landing facts, Desk Plus panel, README, terms",
+    "test": "npm test -- --grep @claim:desk-plus-price",
+    "sandbox": "fresh landing page; assert $19 one-time offer and documented Sociobot checkout route"
+  }
+]

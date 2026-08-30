@@ -1,0 +1,117 @@
+import { expect, test } from '@playwright/test';
+import type { Download, Page } from '@playwright/test';
+
+async function downloadedText(download: Download): Promise<string> {
+  const path = await download.path();
+  if (!path) throw new Error('Downloaded file has no local path.');
+  return (await import('node:fs/promises')).readFile(path, 'utf8');
+}
+
+async function stageFirstSampleLocation(page: Page): Promise<void> {
+  await page.locator('[data-select-key]').first().check();
+  await page.getByLabel('Field', { exact: true }).selectOption('location');
+  await page.getByLabel('New value').fill('Archive room');
+  await page.getByRole('button', { name: 'Stage for 1 item' }).click();
+}
+
+test('@claim:local-data demo catalog processing makes only same-origin requests', async ({ page, baseURL }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await page.goto('/?demo=1');
+  await stageFirstSampleLocation(page);
+
+  const expectedOrigin = new URL(baseURL!).origin;
+  expect(requests.map((request) => new URL(request).origin)).toEqual(expect.arrayContaining([expectedOrigin]));
+  expect(requests.every((request) => new URL(request).origin === expectedOrigin)).toBe(true);
+  expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBeNull();
+});
+
+test('@claim:remote-thumbnails demo keeps remote thumbnails off until the collector opts in', async ({ page }) => {
+  await page.route('https://images.example.invalid/sample-vessel.png', (route) => route.fulfill({
+    status: 200,
+    contentType: 'image/png',
+    body: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64')
+  }));
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Remote image off')).toBeVisible();
+  const request = page.waitForRequest('https://images.example.invalid/sample-vessel.png');
+  await page.getByLabel('Load remote image URLs').check();
+  await request;
+  await expect(page.locator('.item-image img').first()).toHaveAttribute('src', 'https://images.example.invalid/sample-vessel.png');
+});
+
+test('@claim:exact-ids demo patch keeps supplied IDs byte-for-byte', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await stageFirstSampleLocation(page);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export patch CSV' }).click();
+  expect(await downloadedText(await download)).toBe('\uFEFFID,Location\r\n0001,Archive room\r\n');
+});
+
+test('@claim:patch-csv demo exports a patch CSV for staged edits', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await stageFirstSampleLocation(page);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export patch CSV' }).click();
+  const text = await downloadedText(await download);
+  expect(text.split('\r\n')).toEqual(['\uFEFFID,Location', '0001,Archive room', '']);
+});
+
+test('@claim:undo-manifest demo exports original values in the undo CSV', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await stageFirstSampleLocation(page);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export undo CSV' }).click();
+  expect(await downloadedText(await download)).toBe('\uFEFFID,Location\r\n0001,Map drawer\r\n');
+});
+
+test('@claim:demo-isolation demo storage never reads or overwrites a real desk session', async ({ page }) => {
+  const realSession = JSON.stringify({ fileName: 'real-catalog.csv', marker: 'real-user-data' });
+  await page.goto('/');
+  await page.evaluate((value) => localStorage.setItem('collection-bulk-curator:session', value), realSession);
+  await page.goto('/?demo=1');
+
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
+  expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBe(realSession);
+  expect(await page.evaluate(() => localStorage.getItem('demo:collection-bulk-curator:session'))).not.toBeNull();
+
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('.item-card')).toHaveCount(32);
+  expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBe(realSession);
+
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toHaveCount(0);
+  expect(await page.evaluate(() => localStorage.getItem('demo:collection-bulk-curator:session'))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBe(realSession);
+});
+
+test('@claim:offline-reload demo reloads offline after the first visit', async ({ browser, baseURL }) => {
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  try {
+    await page.goto(`${baseURL}/?demo=1`, { waitUntil: 'networkidle' });
+    await page.evaluate(async () => {
+      const registration = await navigator.serviceWorker.ready;
+      await registration.update();
+    });
+    if (!await page.evaluate(() => Boolean(navigator.serviceWorker.controller))) await page.reload({ waitUntil: 'networkidle' });
+    await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
+
+    await context.setOffline(true);
+    await page.reload({ waitUntil: 'domcontentloaded' });
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
+    await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  } finally {
+    await context.close();
+  }
+});
+
+test('@claim:desk-plus-price shows the advertised one-time Desk Plus offer and checkout route', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByText('$19 once for Desk Plus')).toBeVisible();
+  await page.locator('.license-menu > summary').click();
+  await expect(page.getByRole('heading', { name: 'Desk Plus · $19' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Buy once' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/collection-bulk-curator/checkout');
+});

@@ -56,11 +56,9 @@ async function downloadedText(download: Download): Promise<string> {
 
 test('imports, stages, undoes, and exports a reversible batch', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText(/Change the right items/);
-  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Map your catalog columns');
-  await page.getByRole('button', { name: /Open review desk/ }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review the territory');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits safely');
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
 
   await page.getByRole('button', { name: 'Select visible' }).click();
   await expect(page.getByText('32 selected items')).toBeVisible();
@@ -169,7 +167,11 @@ test('has no serious accessibility violations on import and workspace', async ({
   results = await new AxeBuilder({ page: page as never }).analyze();
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
   await page.getByRole('button', { name: 'Use light theme' }).click();
-  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
+  results = await new AxeBuilder({ page: page as never }).analyze();
+  expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await page.locator('#csv-file').setInputFiles({ name: 'accessibility.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title,Location\n0007,Vase,Shelf 2') });
   results = await new AxeBuilder({ page: page as never }).analyze();
   expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
   await page.getByRole('button', { name: /Open review desk/ }).click();
@@ -191,17 +193,14 @@ test.describe('390 px accessibility regression coverage', () => {
     results = await new AxeBuilder({ page: page as never }).analyze();
     expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 
-    await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
-    await expect(page.locator('.license-menu > summary')).toHaveAccessibleName('Desk Plus license options');
-    const sourcePreview = page.getByLabel('Scrollable source preview table');
-    await expect(sourcePreview).toHaveAttribute('tabindex', '0');
-    await sourcePreview.focus();
-    await expect(sourcePreview).toBeFocused();
+    await page.locator('#csv-file').setInputFiles({ name: 'mobile-accessibility.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title\n0007,Vase') });
     results = await new AxeBuilder({ page: page as never }).analyze();
     expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
 
-    await page.getByRole('button', { name: /Open review desk/ }).click();
+    await page.goto('/?demo=1');
     await expect(page.locator('.license-menu > summary')).toHaveAccessibleName('Desk Plus license options');
+    await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+    await expect(page.locator('.item-card')).toHaveCount(32);
     results = await new AxeBuilder({ page: page as never }).analyze();
     expect(results.violations.filter((item) => ['serious', 'critical'].includes(item.impact ?? ''))).toEqual([]);
   });
@@ -258,7 +257,7 @@ test('updates its service worker and reloads the complete shell offline without 
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
   await expect(page.getByRole('status')).toContainText('Offline · local tools still work');
   expect(errors).toEqual([]);
   await context.setOffline(false);
@@ -297,10 +296,10 @@ test('@regression:pwa-upgrade replaces a persistent v3 client before its offline
     })).toBe(true);
 
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
     await context.setOffline(true);
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
     expect(errors).toEqual([]);
   } finally {
     await context.close();
@@ -310,8 +309,7 @@ test('@regression:pwa-upgrade replaces a persistent v3 client before its offline
 
 test('clears a selection before a changed filter can stage hidden rows', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
-  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
   await page.getByLabel('Collection', { exact: true }).selectOption('Field finds');
   await page.getByRole('button', { name: 'Select visible' }).click();
   await expect(page.getByText('11 selected items')).toBeVisible();
@@ -324,8 +322,7 @@ test('clears a selection before a changed filter can stage hidden rows', async (
 
 test('keeps logical focus on an item checkbox after keyboard selection', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
-  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
   const firstCheckbox = page.locator('[data-select-key]').first();
   await firstCheckbox.focus();
   await page.keyboard.press('Space');
@@ -338,8 +335,7 @@ test('gives transparent CSV and thumbnail inputs a visible label focus ring', as
   await page.locator('#csv-file').focus();
   await expect(page.locator('#drop-zone')).toHaveCSS('outline-style', 'solid');
 
-  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
-  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
   await page.locator('#image-files').focus();
   await expect(page.locator('.file-button')).toHaveCSS('outline-style', 'solid');
 });
@@ -350,7 +346,7 @@ test('confirmed New catalog clears the saved Desk Plus session', async ({ page }
   }));
   await page.goto('/?license=valid-test-token');
   await expect(page.locator('.license-menu summary span')).toHaveText('Plus active');
-  await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
+  await page.locator('#csv-file').setInputFiles({ name: 'saved.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title,Location\n0007,Vase,Shelf 2') });
   await page.getByRole('button', { name: /Open review desk/ }).click();
   await page.locator('[data-select-key]').first().check();
   await page.getByLabel('New value').fill('Archive room');
@@ -358,7 +354,7 @@ test('confirmed New catalog clears the saved Desk Plus session', async ({ page }
   await expect.poll(() => page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).not.toBeNull();
   page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'New catalog' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Change the right items');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
   expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBeNull();
   await expect(page.getByRole('button', { name: /Resume local desk/ })).toHaveCount(0);
 });
@@ -385,8 +381,7 @@ test.describe('mobile workspace', () => {
   test.use({ viewport: { width: 390, height: 844 } });
   test('keeps filters and staging reachable', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
-    await page.getByRole('button', { name: /Open review desk/ }).click();
+    await page.getByRole('button', { name: 'Try it with sample data' }).click();
     await page.getByRole('button', { name: 'Filters', exact: true }).click();
     await expect(page.getByRole('heading', { name: 'Filter items' })).toBeVisible();
     await page.getByRole('button', { name: 'Close filters' }).click();
@@ -397,8 +392,7 @@ test.describe('mobile workspace', () => {
 
   test('keeps the mobile staged-change removal target at least 44px and headings in order', async ({ page }) => {
     await page.goto('/');
-    await page.getByRole('button', { name: /Try a 32-item sample/ }).click();
-    await page.getByRole('button', { name: /Open review desk/ }).click();
+    await page.getByRole('button', { name: 'Try it with sample data' }).click();
     await page.locator('[data-select-key]').first().check();
     await page.getByRole('button', { name: 'Stage changes' }).click();
     await page.getByLabel('New value').fill('Archive room');

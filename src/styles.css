@@ -78,6 +78,11 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .inline-form { display: flex; gap: .4rem; }
 .inline-form input { min-width: 0; }
 .success-note { display: flex; gap: .5rem; color: var(--success) !important; }
+.demo-banner { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .5rem clamp(1rem, 4vw, 3.5rem); border-bottom: 1px dashed var(--line); background: var(--surface-2); color: var(--ink); }
+.demo-banner p { margin: 0; display: grid; gap: .1rem; font-size: .82rem; }
+.demo-banner small { color: var(--muted); font-size: .74rem; }
+.demo-banner div { display: flex; align-items: center; gap: .35rem; flex: 0 0 auto; }
+.demo-banner .text-button { padding-inline: .6rem; }
 
 main { min-height: calc(100vh - 142px); }
 footer { min-height: 70px; padding: 1.5rem clamp(1rem, 4vw, 3.5rem); border-top: 1px solid var(--line); color: var(--muted); display: flex; justify-content: space-between; gap: 1rem; font-size: .82rem; }
@@ -121,6 +126,7 @@ label > small { display: block; color: var(--muted); font-weight: 400; margin-to
 .drop-icon svg { width: 1.7rem; height: 1.7rem; }
 .import-aside { padding-left: 1rem; border-left: 1px solid var(--line); }
 .import-aside p { margin-top: 1rem; font-size: .83rem; }
+.import-aside .demo-action-note { margin: .55rem 0 0; font-size: .76rem; }
 .saved-session { width: 100%; min-height: 64px; margin-top: 1.25rem; padding: .7rem 1rem; display: flex; justify-content: space-between; text-align: left; border: 1px solid var(--moss); background: var(--surface); color: var(--ink); }
 .saved-session b, .saved-session small { display: block; }
 .saved-session small { color: var(--muted); }
@@ -231,6 +237,9 @@ th { background: var(--surface-2); font-size: .7rem; letter-spacing: .08em; text
   .brand small, .license-menu summary span, .offline-chip { display: none; }
   .license-menu summary { width: 44px; padding: 0; justify-content: center; }
   .header-actions { gap: .4rem; }
+  .demo-banner { align-items: flex-start; padding: .65rem .75rem; }
+  .demo-banner div { align-items: stretch; flex-direction: column; }
+  .demo-banner .button, .demo-banner .text-button { min-height: 36px; padding: .35rem .5rem; font-size: .72rem; }
   footer { flex-direction: column; padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)); }
   .hero { grid-template-columns: 1fr; padding-top: 2.5rem; }
   .hero-copy, .hero-art { grid-column: 1; }
