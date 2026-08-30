@@ -1,6 +1,6 @@
 # Collection Batch Desk — repair 5 handoff
 
-## Status: release repair verified locally
+## Status: deployed and verified
 
 This repair resolves both release blockers in independent verification 5 for
 candidate `f0ddcc8513082ce03d32264bda57d7c5cc5e39bd`.
@@ -71,12 +71,27 @@ artifact is still `dist/` for Azure Static Web Apps.
 - README, privacy notice, and sitemap now describe the direct demo and its
   separately resettable browser state.
 
-## Deployment
+## Deployment and live identity
 
-The deployment target is Azure Static Web App `sf-collection-bulk-curator` in
-resource group `sociobot`, serving
-`https://collection-bulk-curator.sociobot.in`. The final commit SHA and live
-identity checks are recorded after the requested push and deployment.
+Application repair commit: `6657996044b2e13e3ae5738f6f82573fa242cca8`
+(`fix: add isolated demo and claims coverage`). It was pushed to `main` and
+deployed on 2026-08-30 UTC using Azure Static Web Apps CLI to
+`sf-collection-bulk-curator` in resource group `sociobot`.
+
+Live `https://collection-bulk-curator.sociobot.in` byte-matches the current
+`dist/` for `index.html`, hashed JS and CSS, `sw.js`, privacy, terms, robots,
+and sitemap. The live hashed JS returns one-year immutable caching, `sw.js`
+returns `no-cache`, and HTML revalidates at 30 seconds. Live responses retain
+HSTS, nosniff, strict-origin referrer policy, restrictive permissions policy,
+and the configured CSP with `frame-ancestors 'none'`; an unknown route returns
+404.
+
+The post-deploy URL verifier found no console/page errors and confirmed title,
+`lang=en`, one h1, main landmark, image alt coverage, and labeled buttons.
+Fresh live Axe 4.10.2 scans had zero violations at serious/critical impact for
+the populated `/?demo=1` desk at 1440×900 and 390×844, plus mobile privacy and
+terms. The live demo loaded exactly 32 items and showed the required banner.
+Live evidence is in `.factory/evidence/repair-5-live/`.
 
 ## Known gaps
 
