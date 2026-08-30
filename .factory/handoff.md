@@ -1,6 +1,6 @@
 # Collection Batch Desk — repair handoff
 
-## Status: ready to deploy
+## Status: deployed and verified
 
 This repair resolves the independent verifier's P1 from candidate
 `49724c9cb569ecc0204e6b13af39c0c62a1ff2a9`: a returning PWA client could
@@ -76,8 +76,16 @@ The `v3` cache was gone before reload; online and offline reloads both loaded
 ## Deployment and known gaps
 
 The artifact class remains Vite + vanilla TypeScript static web, built to
-`dist/` for Azure Static Web Apps. There is no repository-side credential or
-manual deployment command; pushing `main` is the factory deployment path.
+`dist/` for Azure Static Web Apps. The verified artifact was deployed to the
+production Static Web App `sf-collection-bulk-curator` and its custom domain
+<https://collection-bulk-curator.sociobot.in>.
+
+Live checks after deployment passed: the root, worker, JS, CSS, and legal
+pages byte-match fresh `dist/`; assets are immutable, `sw.js` is `no-cache`,
+the CSP/security headers are present, and an unknown route returns 404. A
+fresh live PWA context is controlled by a `collection-batch-desk-r…` cache,
+not `v3`; its offline reload shows the product shell and has zero errors.
+
 No product gaps are known. The standalone Axe CLI could not start its own
 Selenium Chrome in this worker image, so the successful pinned Playwright
 `@axe-core/playwright` coverage is the accessibility evidence used here.
