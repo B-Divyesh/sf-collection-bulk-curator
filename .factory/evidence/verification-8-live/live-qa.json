@@ -1,0 +1,414 @@
+{
+  "checkedAt": "2026-09-01T21:12:39.675Z",
+  "base": "https://collection-bulk-curator.sociobot.in",
+  "checks": [
+    {
+      "description": "Confirm that the live start page returns HTTP 200.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the cold page names the catalog-editing job.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the cold page names collectors and their chosen subset.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the sample-data action is inside the opening desktop viewport.",
+      "result": "PASS",
+      "detail": {
+        "x": 72,
+        "y": 457.53125,
+        "width": 241.671875,
+        "height": 46.78125
+      }
+    },
+    {
+      "description": "Confirm that one action opens all 32 sample items.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the demo isolation banner stays visible.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the collection filter narrows the sample to 11 visible items.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that selection reports the exact visible scope.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the patch has one heading row and 11 changed rows.",
+      "result": "PASS",
+      "detail": 12
+    },
+    {
+      "description": "Confirm that the undo file has one heading row and 11 original rows.",
+      "result": "PASS",
+      "detail": 12
+    },
+    {
+      "description": "Confirm that the patch keeps a zero-padded ID and both added tags.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the undo file keeps the original tag value.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that batch undo returns the desk to no staged edits.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the complete demo workflow makes only same-origin requests.",
+      "result": "PASS",
+      "detail": [
+        "https://collection-bulk-curator.sociobot.in"
+      ]
+    },
+    {
+      "description": "Confirm that the complete demo workflow sets no cookies.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that demo use does not write the real workspace key.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the complete demo workflow has no console or page errors.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that empty.csv gives specific recovery guidance.",
+      "result": "PASS",
+      "detail": "This CSV is empty. Choose an export with a header row."
+    },
+    {
+      "description": "Confirm that headings.csv gives specific recovery guidance.",
+      "result": "PASS",
+      "detail": "The CSV has headings but no item rows."
+    },
+    {
+      "description": "Confirm that quoted.csv gives specific recovery guidance.",
+      "result": "PASS",
+      "detail": "The CSV ends inside a quoted field. Check the final row and try again."
+    },
+    {
+      "description": "Confirm that large.csv gives specific recovery guidance.",
+      "result": "PASS",
+      "detail": "That CSV is over 15 MB. Split the export into smaller fieldwork batches."
+    },
+    {
+      "description": "Confirm that duplicate.csv is stopped with correction guidance.",
+      "result": "PASS",
+      "detail": "Duplicate ID “0007” would make a patch ambiguous. Make IDs unique first."
+    },
+    {
+      "description": "Confirm that blank.csv is stopped with correction guidance.",
+      "result": "PASS",
+      "detail": "1 row has a blank ID. Fill them in before safe patching."
+    },
+    {
+      "description": "Confirm that a valid quoted and multiline CSV opens after earlier input errors.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that recovery preserves the mapped ID and exports exact patch bytes.",
+      "result": "PASS",
+      "detail": "\"﻿Ref,Grade\\r\\n0007,Excellent\\r\\n\""
+    },
+    {
+      "description": "Confirm that invalid-input recovery has no console or page errors.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that the sample-data action is inside the opening 390 px viewport.",
+      "result": "PASS",
+      "detail": {
+        "x": 19.5,
+        "y": 326.28125,
+        "width": 241.671875,
+        "height": 46.78125
+      }
+    },
+    {
+      "description": "Confirm that the skip link is first in keyboard order.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that keyboard focus has a visible outline.",
+      "result": "PASS",
+      "detail": {
+        "style": "solid",
+        "width": "3px"
+      }
+    },
+    {
+      "description": "Confirm that the skip link moves focus to main content.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that keyboard navigation reaches the sample-data action.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that Enter opens the sample workspace.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that Space selects an item and retains focus.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that opening filters places focus in the filter panel.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that Escape closes filters and returns focus.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that opening staged changes places focus on its first field.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that Escape closes staged changes and returns focus.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that visible mobile controls have 44 px effective targets.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that the 390 px keyboard and resize experience stays usable.",
+      "result": "FAIL",
+      "detail": "Confirm that the mobile workspace has no horizontal overflow at 200% root text size.: {\"scrollWidth\":496,\"clientWidth\":390}"
+    },
+    {
+      "description": "Confirm that reduced-motion mode limits all motion to effectively instant changes.",
+      "result": "PASS",
+      "detail": {
+        "maxTransition": 0.00001,
+        "maxAnimation": 0.00001
+      }
+    },
+    {
+      "description": "Confirm that / has a title, English language, one h1, one main, and complete image alternatives.",
+      "result": "PASS",
+      "detail": {
+        "title": "Collection Batch Desk — stage catalog edits safely",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "imagesMissingAlt": 0
+      }
+    },
+    {
+      "description": "Confirm that / has no serious or critical Axe findings.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that /?demo=1 has a title, English language, one h1, one main, and complete image alternatives.",
+      "result": "PASS",
+      "detail": {
+        "title": "Demo — Collection Batch Desk",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "imagesMissingAlt": 0
+      }
+    },
+    {
+      "description": "Confirm that /?demo=1 has no serious or critical Axe findings.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that /privacy/ has a title, English language, one h1, one main, and complete image alternatives.",
+      "result": "PASS",
+      "detail": {
+        "title": "Privacy — Collection Batch Desk",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "imagesMissingAlt": 0
+      }
+    },
+    {
+      "description": "Confirm that /privacy/ has no serious or critical Axe findings.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that /terms/ has a title, English language, one h1, one main, and complete image alternatives.",
+      "result": "PASS",
+      "detail": {
+        "title": "Terms — Collection Batch Desk",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "imagesMissingAlt": 0
+      }
+    },
+    {
+      "description": "Confirm that /terms/ has no serious or critical Axe findings.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that /qa-not-found-verification-8 has a title, English language, one h1, one main, and complete image alternatives.",
+      "result": "PASS",
+      "detail": {
+        "title": "Page not found — Collection Batch Desk",
+        "lang": "en",
+        "h1": 1,
+        "main": 1,
+        "imagesMissingAlt": 0
+      }
+    },
+    {
+      "description": "Confirm that /qa-not-found-verification-8 has no serious or critical Axe findings.",
+      "result": "PASS",
+      "detail": []
+    },
+    {
+      "description": "Confirm that an unknown route returns the styled HTTP 404 page.",
+      "result": "PASS",
+      "detail": {
+        "status": 404,
+        "title": "Page not found — Collection Batch Desk"
+      }
+    },
+    {
+      "description": "Confirm that the live page is controlled by its service worker.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the live cache identifies the candidate commit.",
+      "result": "PASS",
+      "detail": [
+        "collection-batch-desk-r1e5f284a1dfa-46fda00ce803"
+      ]
+    },
+    {
+      "description": "Confirm that the populated demo reloads with all 32 items offline.",
+      "result": "PASS"
+    },
+    {
+      "description": "Confirm that the 390 px offline state remains visible after reload.",
+      "result": "PASS",
+      "detail": {
+        "visible": true,
+        "text": "Offline\n· local tools still work",
+        "display": "flex"
+      }
+    },
+    {
+      "description": "Confirm that offline reload has no console or page errors.",
+      "result": "PASS",
+      "detail": []
+    }
+  ],
+  "observations": {
+    "demo": {
+      "requestCount": 4,
+      "origins": [
+        "https://collection-bulk-curator.sociobot.in"
+      ],
+      "patchPreview": [
+        "﻿ID,Tags",
+        "0001,\"uncatalogued, priority, fragile\"",
+        "0004,\"uncatalogued, priority, fragile\"",
+        "0007,\"uncatalogued, priority, fragile\""
+      ],
+      "undoPreview": [
+        "﻿ID,Tags",
+        "0001,uncatalogued",
+        "0004,uncatalogued",
+        "0007,uncatalogued"
+      ]
+    },
+    "routes": [
+      {
+        "route": "/",
+        "status": 200,
+        "structure": {
+          "title": "Collection Batch Desk — stage catalog edits safely",
+          "lang": "en",
+          "h1": 1,
+          "main": 1,
+          "imagesMissingAlt": 0
+        },
+        "seriousOrCritical": []
+      },
+      {
+        "route": "/?demo=1",
+        "status": 200,
+        "structure": {
+          "title": "Demo — Collection Batch Desk",
+          "lang": "en",
+          "h1": 1,
+          "main": 1,
+          "imagesMissingAlt": 0
+        },
+        "seriousOrCritical": []
+      },
+      {
+        "route": "/privacy/",
+        "status": 200,
+        "structure": {
+          "title": "Privacy — Collection Batch Desk",
+          "lang": "en",
+          "h1": 1,
+          "main": 1,
+          "imagesMissingAlt": 0
+        },
+        "seriousOrCritical": []
+      },
+      {
+        "route": "/terms/",
+        "status": 200,
+        "structure": {
+          "title": "Terms — Collection Batch Desk",
+          "lang": "en",
+          "h1": 1,
+          "main": 1,
+          "imagesMissingAlt": 0
+        },
+        "seriousOrCritical": []
+      },
+      {
+        "route": "/qa-not-found-verification-8",
+        "status": 404,
+        "structure": {
+          "title": "Page not found — Collection Batch Desk",
+          "lang": "en",
+          "h1": 1,
+          "main": 1,
+          "imagesMissingAlt": 0
+        },
+        "seriousOrCritical": []
+      }
+    ],
+    "offline": {
+      "cacheNames": [
+        "collection-batch-desk-r1e5f284a1dfa-46fda00ce803"
+      ],
+      "status": {
+        "visible": true,
+        "text": "Offline\n· local tools still work",
+        "display": "flex"
+      }
+    }
+  },
+  "findings": [
+    "Confirm that the 390 px keyboard and resize experience stays usable.: Confirm that the mobile workspace has no horizontal overflow at 200% root text size.: {\"scrollWidth\":496,\"clientWidth\":390}"
+  ]
+}
