@@ -18,7 +18,8 @@ characters.
 - `npm test` — 7 unit tests and 48 browser tests passed. The checked-in
   Playwright configuration runs this browser matrix serially.
 - Each of the 20 exact claim commands from `.factory/claims.json` — 20/20 passed
-  from a fresh clone of `aa0517b955fd632bc86ef9443f99c230958eb8bf`.
+  from fresh clones of repair commit `aa0517b955fd632bc86ef9443f99c230958eb8bf`
+  and pushed evidence commit `93abc2f079f8a6ddd0e616691a07bbf2241339b4`.
 - `npm run build` — passed; `dist/` contains `index.html`.
 - Initial JavaScript: 39.08 kB raw / 12.83 kB gzip.
 - CSS: 21.26 kB raw / 5.52 kB gzip.

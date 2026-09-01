@@ -22,6 +22,8 @@ earlier `review-*.md` or `polish-*.md` finding set. Every finding in
   `npm ci` passed, all 20 exact commands from `.factory/claims.json` passed,
   and `npm run build` passed. Per-claim results are in
   [`claims-status.tsv`](./qa-artifacts/polish-1-live/claims-status.tsv).
+- The same 20/20 claim sweep and build passed again from a fresh clone of the
+  pushed evidence commit `93abc2f079f8a6ddd0e616691a07bbf2241339b4`.
 - Build output: `dist/index.html`; initial JavaScript 39.08 kB raw / 12.83 kB
   gzip and CSS 21.26 kB raw / 5.52 kB gzip.
 - `/opt/fleet/lib/verify-url.sh` passed production with title, `lang="en"`, one
