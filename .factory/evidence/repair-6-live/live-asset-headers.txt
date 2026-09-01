@@ -1,0 +1,15 @@
+HTTP/2 200 
+content-type: text/javascript
+date: Tue, 01 Sep 2026 19:45:16 GMT
+cache-control: public, max-age=31536000, immutable
+etag: "62666763"
+last-modified: Tue, 01 Sep 2026 19:43:04 GMT
+content-length: 38975
+strict-transport-security: max-age=10886400; includeSubDomains; preload
+referrer-policy: strict-origin-when-cross-origin
+x-content-type-options: nosniff
+x-xss-protection: 1; mode=block
+x-dns-prefetch-control: off
+permissions-policy: camera=(), microphone=(), geolocation=(), payment=()
+content-security-policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; connect-src 'self' https://api.sociobot.in https://pilot-api.sociobot.in; object-src 'none'; base-uri 'self'; frame-ancestors 'none'
+

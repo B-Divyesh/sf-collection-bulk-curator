@@ -1,53 +1,96 @@
-# Collection Batch Desk — independent verification 6 handoff
+# Collection Batch Desk — repair 6 handoff
 
-## Status: FAIL
+## Status: deployed and verified
 
-Candidate `f0f0b3ba0b4b02b3d1e0f6846760bc10064e4490` was independently checked at
-<https://collection-bulk-curator.sociobot.in> on 2026-09-01 UTC. The live files
-byte-match the candidate, all declared claim tests pass, the complete automated
-suite and build pass, and the core reversible batch-edit workflow works.
+Repair commit `5fa722e7ce272830cc12d619868a36c298865aa4`
+(`fix: repair release-blocking QA findings`) repairs every release-blocking
+finding in independent verification 6 while keeping the Vite + vanilla
+TypeScript static PWA and `dist/` Azure Static Web Apps artifact.
 
-Release remains blocked by four P1 findings:
+## What changed
 
-1. At 390 × 844, **Try it with sample data** begins at y = 1102.66 px, so the
-   opening mobile screen does not show what to click first.
-2. `.factory/claims.json` omits published claims, including paid workspace
-   restore, daily verification frequency, CSV-format support, ID validation,
-   and no-analytics/runtime-script statements.
-3. A verified Desk Plus workspace is not stored when its CSV is opened. The
-   session key stays absent until the first staged edit, despite the automatic
-   next-visit restore promise.
-4. Mandatory site structure is incomplete: no canonical/OG/Twitter metadata or
-   social image, no Apple touch icon, no demo-specific title, no product-styled
-   404, and incomplete standard header/footer treatment.
+- The cold 390 × 844 landing page now places **Try it with sample data** at
+  y=326.28 px (46.78 px tall), entirely inside the first viewport. It opens
+  the same 32-item isolated demo in one click.
+- `.factory/claims.json` now contains 19 public product claims. Each has one
+  exact `@claim:<id>` Playwright regression. The manifest includes CSV mapping
+  and parsing, ID validation, thumbnail matching, filtering, source-row
+  safety, free core workflow, no-tracking, and Desk Plus restore/daily-check
+  behavior in addition to the existing export, demo, privacy, and offline
+  claims.
+- A verified Desk Plus catalog is persisted when the review desk opens, before
+  its first edit. The regression mocks a verified license, reloads, and
+  restores the opened desk.
+- Added route metadata, canonical URLs, OG/Twitter metadata, a 1200 × 630
+  social preview, SVG favicon plus Apple touch icon, demo-specific title,
+  product-styled `/404.html`, Static Web Apps 404 override, shared headers,
+  shared footer build ID, and legal-page skip links.
+- Demo controls and the remote-thumbnail switch meet the 44 px target rule.
+  The selected 1,000-row mobile toolbar wraps inside a 390 px viewport.
+- The visual thesis records the original-art derivatives used for social and
+  Apple icons in `.factory/design.md`.
 
-Two P2 mobile findings remain: demo banner actions are 36 px high and the remote
-image switch target is 26 px; a selected 1,000-row catalog makes the 390 px page
-398 px wide.
+## Verification
 
-## Verification summary
+Fresh validation after `npm ci`:
 
-- `npm ci`: PASS — 61 packages, 0 vulnerabilities.
-- Every command in `.factory/claims.json`: PASS after the locked install.
-- `npm test`: PASS — 7 Vitest and 29 Chromium tests.
-- `npm run build`: PASS; `dist/` generated.
-- `npm audit --omit=dev`: PASS.
-- Independent live demo and real CSV flows: PASS for filtering, staging,
-  patch/undo export, undo, demo reset/isolation, exact IDs, malformed-input
-  recovery, and the 15 MiB boundary.
-- Live Axe desktop/mobile, light/dark, demo, privacy, terms: zero findings.
-- Keyboard, reduced motion, 200% text, console/page errors: PASS except the
-  touch-size findings above.
-- Live PWA update/control and populated offline reload: PASS.
-- Billing allowance: requests 1–30 returned 200; request 31 returned 429 with
-  `Retry-After: 4`.
-- Lighthouse mobile: 98 performance, 100 accessibility, 100 best practices,
-  100 SEO; LCP 2.03 s, TBT 0 ms, CLS 0.
-- Bundles: JS 12.35 kB gzip, CSS 5.30 kB gzip; budgets pass.
+- `npm test`: PASS — 7 Vitest tests and 44 Chromium Playwright tests.
+- Each exact command in `.factory/claims.json`: PASS — 19 claim tests.
+- `npm run build`: PASS — strict TypeScript check, Vite production build, and
+  service-worker generation. Output is `dist/` with `index.html` at its root.
+- `npm audit --omit=dev`: PASS — 0 vulnerabilities. There is no separate lint
+  script; `tsc --noEmit` is part of the production build.
+- Playwright Axe scans (desktop/mobile, dark/light, demo, privacy, terms) and
+  a fresh live 390 px Axe sweep: zero serious or critical violations.
+- Keyboard regression covers the skip link, Enter sample activation, mobile
+  menu, Space item selection/focus restoration, transparent file-input focus,
+  and Escape drawer return.
+- Local URL verification: title, `lang=en`, one h1, `main`, image alt text,
+  labeled buttons, and zero console/page errors. Evidence:
+  `.factory/evidence/repair-6-local/verify.json`.
+- Local Lighthouse mobile: Performance 100, Accessibility 100, Best
+  Practices 100, SEO 100; FCP 0.97 s, LCP 1.52 s, TBT 0 ms, CLS 0. Evidence:
+  `.factory/evidence/repair-6-local/lighthouse.json`.
+- Production bundle: JS 38,975 B / 12.78 kB gzip, CSS 21,001 B / 5.51 kB
+  gzip. The responsive hero and no external fonts keep the static budgets
+  within limits.
 
-Full evidence and remediation detail are in
-[`.factory/verification-6.md`](verification-6.md). URL and Lighthouse evidence
-is in `.factory/evidence/verification-6-live/`; claim command output and mobile
-screenshots are in `.factory/qa-artifacts/`.
+## Deployment and live identity
 
-No product code or deployment was modified during verification.
+`dist/` was deployed to the allowed production target
+`sf-collection-bulk-curator` with the Azure Static Web Apps CLI on 2026-09-01
+UTC. The live URL is <https://collection-bulk-curator.sociobot.in>.
+
+- Live `/` SHA-256 matches `dist/index.html`:
+  `cdd79ea659919f612782ff3e83ca440ecd2a67b5c01854aadd170b9b5713f71a`.
+- Live `sw.js` matches `dist/sw.js`:
+  `5b1e20aef30a1a6f0b4763acb194db0815b98840738db6255e88f906e9b3e664`.
+  Its cache is `collection-batch-desk-r5fa722e7ce27-b1117a4af5be`, so
+  returning PWA clients receive a new cache version.
+- Live social and Apple assets byte-match the production build. Hash evidence,
+  headers, local/live URL checks, and screenshots are in
+  `.factory/evidence/repair-6-local/` and `.factory/evidence/repair-6-live/`.
+- Live `/privacy/`, `/terms/`, and `/404.html` return 200. An unknown route
+  returns the product-styled page with HTTP 404. Live HTML includes the
+  configured self-only scripts, restricted `connect-src`, `frame-ancestors
+  'none'`, `nosniff`, strict-origin referrer policy, permissions policy, and
+  immutable hashed asset caching.
+- A fresh live 390 px browser confirmed the sample action is fully visible,
+  the document is 390 px wide, metadata is present, the demo title is specific,
+  and the action opens 32 sample cards.
+
+## Run and deploy
+
+```sh
+npm ci
+npm test
+npm run build
+```
+
+Deploy `dist/` to the product's Azure Static Web Apps target. The repository
+does not include deployment credentials.
+
+## Known gaps and next steps
+
+None known. This is a static browser product, so package-consumer,
+server-concurrency, database, and backend health checks do not apply.
