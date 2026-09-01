@@ -1,0 +1,21 @@
+claim_id	result	evidence
+sample-catalog	PASS	clean clone; exact .factory/claims.json command
+local-data	PASS	clean clone; exact .factory/claims.json command
+remote-thumbnails	PASS	clean clone; exact .factory/claims.json command
+exact-ids	PASS	clean clone; exact .factory/claims.json command
+patch-csv	PASS	clean clone; exact .factory/claims.json command
+undo-manifest	PASS	clean clone; exact .factory/claims.json command
+demo-isolation	PASS	clean clone; exact .factory/claims.json command
+offline-reload	PASS	clean clone; exact .factory/claims.json command
+desk-plus-price	PASS	clean clone; exact .factory/claims.json command
+desk-plus-session	PASS	clean clone; exact .factory/claims.json command
+daily-license-check	PASS	clean clone; exact .factory/claims.json command
+license-request-boundary	PASS	clean clone; exact .factory/claims.json command
+no-tracking	PASS	clean clone; exact .factory/claims.json command
+csv-heading-mapping	PASS	clean clone; exact .factory/claims.json command
+csv-format-support	PASS	clean clone; exact .factory/claims.json command
+id-validation	PASS	clean clone; exact .factory/claims.json command
+local-thumbnail-matching	PASS	clean clone; exact .factory/claims.json command
+filter-visible-results	PASS	clean clone; exact .factory/claims.json command
+source-rows-unchanged	PASS	clean clone; exact .factory/claims.json command
+free-core-workflow	PASS	clean clone; exact .factory/claims.json command

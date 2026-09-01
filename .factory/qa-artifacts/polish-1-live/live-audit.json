@@ -1,0 +1,39 @@
+{
+  "url": "https://collection-bulk-curator.sociobot.in",
+  "coldContext": true,
+  "viewport": { "width": 390, "height": 844 },
+  "landing": {
+    "status": 200,
+    "title": "Collection Batch Desk — stage catalog edits safely",
+    "h1": "Stage bulk catalog edits safely",
+    "h1Count": 1,
+    "headerSubtitle": "Review catalog changes before export",
+    "demoActionInFirstScreen": true,
+    "scrollWidth": 390,
+    "requestOrigins": ["https://collection-bulk-curator.sociobot.in"],
+    "consoleErrors": []
+  },
+  "focus": {
+    "enterDemo": true,
+    "browserBack": true,
+    "browserForward": true,
+    "resetDemo": true,
+    "startForReal": true
+  },
+  "demoIsolation": {
+    "realSessionAfterResetAndExit": "real-sentinel",
+    "demoSessionAfterExit": null
+  },
+  "axeSeriousOrCritical": {
+    "landing": 0,
+    "demo": 0,
+    "privacy": 0,
+    "terms": 0,
+    "notFound": 0
+  },
+  "routes": {
+    "/privacy/": { "status": 200, "title": "Privacy — Collection Batch Desk", "h1Count": 1 },
+    "/terms/": { "status": 200, "title": "Terms — Collection Batch Desk", "h1Count": 1 },
+    "/missing-polish-check": { "status": 404, "title": "Page not found — Collection Batch Desk", "h1Count": 1 }
+  }
+}

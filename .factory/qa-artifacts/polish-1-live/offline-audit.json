@@ -1,0 +1,11 @@
+{
+  "url": "https://collection-bulk-curator.sociobot.in/?demo=1",
+  "dedicatedBrowserContext": true,
+  "serviceWorkerControlled": true,
+  "offlineReloadPassed": true,
+  "title": "Demo — Collection Batch Desk",
+  "h1": "Review catalog items",
+  "demoBannerVisible": true,
+  "offlineStatus": "Offline · local tools still work",
+  "consoleErrors": []
+}
