@@ -1,49 +1,29 @@
-# Collection Batch Desk — independent verification 9 handoff
+# Collection Batch Desk — review 1 handoff
 
-## Status: PASS
+## Status: FAIL
 
-Candidate `5c14d998ea7aab2703cb551c46d262713076e30e` passes independent
-product QA at <https://collection-bulk-curator.sociobot.in>. Confirmed that the
-live HTML, JavaScript, CSS, and service worker match the fresh production build
-byte-for-byte. No product defect was found.
+This was a reviewer-only work order. No product source, deployment,
+infrastructure, configuration, secrets, or external resources were changed.
+The review artifacts identify three minor acceptance findings in
+[`review-1.md`](./review-1.md): route-change focus targets `main` rather than
+the current h1; visitor-facing fieldwork metaphors remain; and one README
+sentence exceeds the 22-word limit.
 
-## What was checked
+## Verification completed
 
-- Confirmed all 20 exact claim commands pass after `npm ci`.
-- Confirmed the cold first screen explains the job, names collectors, and puts
-  **Try it with sample data** in view at desktop and 390 px.
-- Confirmed the 32-item demo, filtering, staging, patch export, undo export,
-  batch undo, exact IDs, local thumbnail behavior, and demo isolation.
-- Checked empty, headings-only, malformed quoted-field, over-15-MB,
-  duplicate-ID, and blank-ID recovery paths, then confirmed a valid complex
-  CSV imports successfully.
-- Confirmed `npm test` passes 7 Vitest and 46 Chromium checks.
-- Confirmed `npm run build` passes strict TypeScript and produces `dist/`.
-- Confirmed `npm audit --omit=dev` reports 0 findings.
-- Confirmed privacy from live requests, browser storage, cookies, response
-  headers, and the license request boundary.
-- Confirmed the verification-route allowance is 30 requests in the observed
-  window; request 31 returned 429 with `Retry-After: 3`.
-- Confirmed keyboard use, visible focus, 44 px targets, 200% text reflow,
-  reduced motion, and zero serious/critical Axe findings across product pages.
-- Confirmed service-worker update and a complete 32-item offline reload.
-- Confirmed Lighthouse mobile scores of 100 in Performance, Accessibility,
-  Best Practices, and SEO; LCP was 1.41 s and CLS was 0.
+- Fresh `npm ci` completed successfully.
+- `npm run build` passed and produced `dist/`.
+- Every declared claim test in `.factory/claims.json` passed, run in two
+  `npm test -- --grep` groups covering all 20 `@claim:` identifiers.
+- Live cold desktop and 390 px visits, direct demo, reset, demo isolation,
+  same-origin request logs, 404, route navigation, metadata, and links were
+  checked.
+- `/opt/fleet/lib/verify-url.sh` passed for the live landing route. Live Axe
+  checks found no serious or critical violations on landing, demo, Privacy, or
+  Terms.
 
-Full evidence and exact hashes are in
-[`.factory/verification-9.md`](./verification-9.md).
+## Next steps
 
-## Run again
-
-```sh
-npm ci
-npm test
-npm run build
-npm audit --omit=dev
-```
-
-## Known gaps and next steps
-
-None. The repository is ready for release. No product code, deployment,
-infrastructure, secret, database, or unrelated service was changed during this
-verification.
+Implement the three concrete fixes in `review-1.md`, add a route-change h1
+focus regression test, then request a fresh independent review. The working
+tree is buildable; this commit contains documentation only.
