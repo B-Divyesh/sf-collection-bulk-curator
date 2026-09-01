@@ -435,8 +435,36 @@ test('keeps 390px demo controls at 44px and the selected large workspace within 
   await page.locator('#csv-file').setInputFiles({ name: 'large.csv', mimeType: 'text/csv', buffer: Buffer.from(`ID,Title,Collection\n${rows}`) });
   await page.getByRole('button', { name: /Open review desk/ }).click();
   await page.getByRole('button', { name: 'Select all matching' }).click();
-  await expect(page.getByText('1,000 selected items')).toBeVisible();
+  await expect(page.locator('.mobile-selection')).toContainText('1000 selected');
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
+});
+
+test('reflows the 390px start page and populated demo at 200% text size without horizontal scrolling', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+
+  await page.goto('/');
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  const startDimensions = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+    buildWidth: document.querySelector<HTMLElement>('.build-id')?.getBoundingClientRect().width
+  }));
+  expect(startDimensions.scrollWidth).toBeLessThanOrEqual(startDimensions.clientWidth);
+  expect(startDimensions.buildWidth).toBeLessThanOrEqual(startDimensions.clientWidth);
+
+  await page.goto('/?demo=1');
+  await page.locator('[data-select-key]').first().check();
+  await expect(page.locator('.ledger')).not.toHaveClass(/mobile-open/);
+  await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+  const demoDimensions = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+    itemRight: document.querySelector<HTMLElement>('.item-info')?.getBoundingClientRect().right,
+    ledgerRight: document.querySelector<HTMLElement>('.ledger')?.getBoundingClientRect().right
+  }));
+  expect(demoDimensions.scrollWidth).toBeLessThanOrEqual(demoDimensions.clientWidth);
+  expect(demoDimensions.itemRight).toBeLessThanOrEqual(demoDimensions.clientWidth);
+  expect(demoDimensions.ledgerRight).toBe(0);
 });
 
 test('progressively renders a thousand-row catalog while preserving bulk selection', async ({ page }) => {
@@ -453,7 +481,7 @@ test('progressively renders a thousand-row catalog while preserving bulk selecti
     (button as HTMLButtonElement).click();
   }));
   expect(interactionMs).toBeLessThan(200);
-  await expect(page.getByText('1,000 selected items')).toBeVisible();
+  await expect(page.locator('.mobile-selection')).toContainText('1000 selected');
   await expect(page.locator('.item-card')).toHaveCount(120);
 });
 
@@ -478,6 +506,7 @@ test.describe('mobile workspace', () => {
     await page.getByLabel('New value').fill('Archive room');
     await page.getByRole('button', { name: 'Stage for 1 item' }).click();
     const remove = page.locator('[data-remove-change]');
+    await expect(remove).toBeVisible();
     const box = await remove.boundingBox();
     expect(box?.width).toBeGreaterThanOrEqual(44);
     expect(box?.height).toBeGreaterThanOrEqual(44);

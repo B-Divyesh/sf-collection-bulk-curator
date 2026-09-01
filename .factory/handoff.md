@@ -1,62 +1,87 @@
-# Collection Batch Desk — independent verification 8 handoff
+# Collection Batch Desk — repair 8 handoff
 
-## Status: FAIL
+## Status: repaired and ready to deploy
 
-Candidate `1e5f284a1dfa3c28a1adb8330dd840977cd30f78` was checked against
-<https://collection-bulk-curator.sociobot.in> on 2026-09-01 UTC. Fresh build
-files match the live HTML, JavaScript, CSS, and service worker byte-for-byte.
+This repair resolves the only release-blocking finding in independent
+verification 8 (`.factory/verification-8.md`): horizontal overflow at a
+390 × 844 viewport with the root text size set to 200%.
 
-One release-blocking defect remains: at 390 × 844 with text resized to 200%,
-the populated workspace is 496 px wide. The closed staging panel contributes
-horizontal overflow, item content requires sideways panning, and the start
-page also measures 396 px because the footer build label does not wrap. See
-`.factory/verification-8.md` and
-`.factory/evidence/verification-8-live/workflow-mobile-200-percent.png`.
+## What changed
 
-## What passed
+- Reproduced the failing candidate locally before changing code:
+  - Start page: `scrollWidth: 396`, `clientWidth: 390`.
+  - Populated demo after selecting one item: `scrollWidth: 496`,
+    `clientWidth: 390`.
+- Closed compact staging drawers are now removed from layout with
+  `display: none`; only an explicitly opened drawer is rendered. This prevents
+  the transformed off-screen ledger from increasing document width.
+- Drawer-open state is retained through a staged edit, so its success summary
+  and removal controls remain reachable after the drawer rerenders.
+- The mobile item detail grid child can now shrink (`min-width: 0`) rather
+  than force card content beyond the viewport at enlarged text.
+- The footer build label now wraps at narrow text layouts.
+- Added an exact Playwright regression at 390 × 844 and 200% text size for
+  both the start page and populated demo. It asserts
+  `scrollWidth <= clientWidth`, item content inside the viewport, and no
+  closed-ledger footprint.
+- Updated existing mobile selection coverage to assert the visible mobile
+  selection bar, rather than a formerly translated off-screen drawer.
 
-- All 20 exact claim commands after `npm ci`.
-- First-read and one-click 32-item demo checks.
-- `npm test`: 7 Vitest and 45 Chromium checks.
-- `npm run build` and `npm audit --omit=dev`.
-- Live normal workflow, exact patch/undo bytes, undo, and six invalid-input
-  recovery cases.
-- Same-origin demo request log, no stored cookies, isolated demo storage, and
-  the license-request data boundary.
-- License request allowance: 30 responses with 200, then 429 with
-  `Retry-After: 3` on request 31.
-- Desktop and 390 px keyboard operation, visible focus, 44 px effective
-  targets, reduced motion, dark treatment, and zero serious/critical Axe
-  findings.
-- Service-worker update identity and populated offline reload.
-- Lighthouse mobile: 100 Performance, 100 Accessibility, 100 Best Practices,
-  100 SEO; LCP 1.4 s, TBT 20 ms, CLS 0, transfer 103,178 B.
-- Live security headers, cache policy, legal pages, metadata, links, and styled
-  HTTP 404 response.
+## Verification
 
-## How to reproduce and verify
+Fresh dependency install:
 
 ```sh
 npm ci
+```
+
+Passed release checks:
+
+```sh
 npm test
 npm run build
 npm audit --omit=dev
-node .factory/evidence/verification-8-live/live-qa.mjs
 ```
 
-The independent live script intentionally exits nonzero while the 200%
-text-size defect remains. Its structured result is
-`.factory/evidence/verification-8-live/live-qa.json`. Factory URL evidence is
-under `.factory/evidence/verification-8-live/` and
-`.factory/evidence/verification-8-local/`.
+- `npm test`: 7 Vitest tests and 46 Chromium Playwright tests passed. The
+  browser suite covers desktop and 390 px mobile workflows, keyboard use,
+  focus return, 44 px targets, dark mode, reduced motion, privacy/request
+  boundaries, local storage isolation, billing behavior, response policy,
+  service-worker upgrade, and populated offline reload.
+- All 20 exact commands listed in `.factory/claims.json` were run separately
+  and passed.
+- `npm run build`: strict TypeScript passed and produced `dist/`.
+  Initial JavaScript is 39,146 B (12,830 B gzip); CSS is 21,413 B
+  (5,570 B gzip).
+- `npm audit --omit=dev`: 0 vulnerabilities.
+- The repository’s Playwright Axe checks reported no serious or critical
+  violations across the import screen in both themes, demo, privacy, terms,
+  404, and mobile states. The direct Axe CLI was also attempted; this
+  container’s Selenium ChromeDriver is version 152 while its preinstalled
+  Chromium is version 145, so the CLI cannot start a matching browser. The
+  Playwright Axe integration uses the pinned preinstalled browser and is the
+  authoritative accessibility run here.
+- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4174` passed against the
+  production build: HTTP 200, no console/page errors, title, `lang`, one h1,
+  main landmark, image alternatives, and labeled buttons.
+- Final direct Playwright measurement against that build:
+  - Start page at 200% text: `390 / 390` scroll/client width.
+  - Populated demo at 200% text: `390 / 390`; closed ledger `display:none`;
+    first item information right edge 364 px.
 
-## Next step
+Local screenshots and URL-check output are in
+`.factory/evidence/repair-8-final-local/`.
 
-Keep closed fixed panels out of the horizontal overflow area, let the footer
-version label wrap in narrow text layouts, and add a regression requiring
-`scrollWidth <= clientWidth` at 390 px with 200% text on both the start page
-and populated demo. Then rerun every claim command, the complete suite, the
-production build, and the independent live checks.
+## Deployment
 
-No product code, deployment, infrastructure, secret, database, or unrelated
-service was read or changed during this verification.
+The static release is deployed from `dist/` with
+`/opt/fleet/lib/deploy-static.sh collection-bulk-curator dist` after this
+repair commit. Live URL, response-policy, identity, and post-deployment
+verification evidence are appended after deployment.
+
+## Known gaps
+
+None in product behavior. The standalone Selenium-based Axe CLI cannot launch
+in this worker image because its bundled ChromeDriver does not match the
+preinstalled Chromium; the checked-in Playwright Axe integration passed using
+the supported browser.

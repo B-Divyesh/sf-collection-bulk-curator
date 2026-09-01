@@ -37,6 +37,7 @@ const state = {
   selection: new Set<string>(),
   changes: {} as Record<string, RowChanges>,
   batches: [] as ChangeBatch[],
+  ledgerOpen: false,
   renderLimit: CATALOG_PAGE_SIZE,
   query: '',
   filters: { location: '', condition: '', collection: '', staged: '' },
@@ -254,7 +255,7 @@ function workspaceScreen(): string {
       <div class="catalog-toolbar"><div><button class="button secondary mobile-only" data-action="open-filters">${icon('filter')} Filters</button><p><b>${visible.length.toLocaleString()}</b> of ${state.rows.length.toLocaleString()} items</p></div><div><button class="text-button" data-action="select-visible">Select visible</button>${visible.length > rendered.length ? `<button class="text-button" data-action="select-matching">Select all matching</button>` : ''}<button class="text-button" data-action="clear-selection" ${state.selection.size ? '' : 'disabled'}>Clear</button></div></div>
       ${visible.length ? `<p class="rendered-count">Showing ${rendered.length.toLocaleString()} of ${visible.length.toLocaleString()} matching items. ${visible.length > rendered.length ? 'Load more to inspect additional items before selecting them.' : ''}</p><div class="item-grid">${rendered.map(itemCard).join('')}</div>${visible.length > rendered.length ? `<button class="button secondary load-more" data-action="load-more">Show ${Math.min(CATALOG_PAGE_SIZE, visible.length - rendered.length).toLocaleString()} more items</button>` : ''}` : `<div class="empty-results">${icon('route')}<h2>No items match these filters</h2><p>Clear a filter or search for a broader term. Staged edits are still safe.</p><button class="button secondary" data-action="clear-filters">Clear filters</button></div>`}
     </section>
-    <aside class="ledger" aria-labelledby="ledger-title"><div class="rail-heading"><span>${icon('layers')}</span><div><p class="eyebrow">Changes</p><h2 id="ledger-title">Stage a field</h2></div><button class="icon-button compact-only" data-action="close-ledger" aria-label="Close change ledger">×</button></div>
+    <aside class="ledger ${state.ledgerOpen ? 'mobile-open' : ''}" aria-labelledby="ledger-title"><div class="rail-heading"><span>${icon('layers')}</span><div><p class="eyebrow">Changes</p><h2 id="ledger-title">Stage a field</h2></div><button class="icon-button compact-only" data-action="close-ledger" aria-label="Close change ledger">×</button></div>
       <p class="selection-count"><b>${state.selection.size.toLocaleString()}</b> selected item${state.selection.size === 1 ? '' : 's'}</p>
       <form id="stage-form">
         <label for="stage-field">Field</label><select id="stage-field" name="field">${editableFields.map((field) => `<option value="${field}">${field[0]?.toUpperCase()}${field.slice(1)}</option>`).join('')}</select>
@@ -377,6 +378,7 @@ function clearDeskData(): void {
   state.selection.clear();
   state.changes = {};
   state.batches = [];
+  state.ledgerOpen = false;
   state.renderLimit = CATALOG_PAGE_SIZE;
   state.query = '';
   state.filters = { location: '', condition: '', collection: '', staged: '' };
@@ -394,6 +396,7 @@ function loadDemoDesk(session: DemoSession | null = null): void {
   state.selection.clear();
   state.changes = session?.changes ?? {};
   state.batches = session?.batches ?? [];
+  state.ledgerOpen = false;
   state.renderLimit = CATALOG_PAGE_SIZE;
   state.query = '';
   state.filters = { location: '', condition: '', collection: '', staged: '' };
@@ -537,7 +540,7 @@ function bindWorkspace(): void {
   const filtersRail = document.querySelector<HTMLElement>('.filters');
   const ledgerRail = document.querySelector<HTMLElement>('.ledger');
   if (narrow && filtersRail) filtersRail.inert = true;
-  if (compact && ledgerRail) ledgerRail.inert = true;
+  if (compact && ledgerRail) ledgerRail.inert = !state.ledgerOpen;
   document.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (event) => { state.query = (event.target as HTMLInputElement).value; const hadSelection = resetVisibleScope(); render(); requestAnimationFrame(() => { const search = document.querySelector<HTMLInputElement>('#search'); search?.focus(); search?.setSelectionRange(state.query.length, state.query.length); }); announceScopeReset(hadSelection); });
   document.querySelectorAll<HTMLSelectElement>('[data-filter]').forEach((select) => select.addEventListener('change', () => { const key = select.dataset.filter as keyof typeof state.filters; state.filters[key] = select.value; const hadSelection = resetVisibleScope(); render(); announceScopeReset(hadSelection); }));
   document.querySelectorAll<HTMLInputElement>('[data-select-key]').forEach((input) => input.addEventListener('change', () => { updateSelectionFromDom(); render(); }));
@@ -559,8 +562,8 @@ function bindWorkspace(): void {
   document.querySelector<HTMLInputElement>('#image-files')?.addEventListener('change', (event) => attachImages((event.target as HTMLInputElement).files));
   document.querySelector<HTMLElement>('[data-action="open-filters"]')?.addEventListener('click', () => { if (filtersRail) { filtersRail.inert = false; filtersRail.classList.add('mobile-open'); document.querySelector<HTMLInputElement>('#search')?.focus(); } });
   document.querySelector<HTMLElement>('[data-action="close-filters"]')?.addEventListener('click', () => { if (filtersRail) { filtersRail.classList.remove('mobile-open'); filtersRail.inert = true; document.querySelector<HTMLElement>('[data-action="open-filters"]')?.focus(); } });
-  document.querySelector<HTMLElement>('[data-action="open-ledger"]')?.addEventListener('click', () => { if (ledgerRail) { ledgerRail.inert = false; ledgerRail.classList.add('mobile-open'); document.querySelector<HTMLSelectElement>('#stage-field')?.focus(); } });
-  document.querySelector<HTMLElement>('[data-action="close-ledger"]')?.addEventListener('click', () => { if (ledgerRail) { ledgerRail.classList.remove('mobile-open'); ledgerRail.inert = true; document.querySelector<HTMLElement>('[data-action="open-ledger"]')?.focus(); } });
+  document.querySelector<HTMLElement>('[data-action="open-ledger"]')?.addEventListener('click', () => { if (ledgerRail) { state.ledgerOpen = true; ledgerRail.inert = false; ledgerRail.classList.add('mobile-open'); document.querySelector<HTMLSelectElement>('#stage-field')?.focus(); } });
+  document.querySelector<HTMLElement>('[data-action="close-ledger"]')?.addEventListener('click', () => { if (ledgerRail) { state.ledgerOpen = false; ledgerRail.classList.remove('mobile-open'); ledgerRail.inert = true; document.querySelector<HTMLElement>('[data-action="open-ledger"]')?.focus(); } });
   document.onkeydown = (event) => { if (event.key !== 'Escape') return; if (filtersRail?.classList.contains('mobile-open')) document.querySelector<HTMLElement>('[data-action="close-filters"]')?.click(); if (ledgerRail?.classList.contains('mobile-open')) document.querySelector<HTMLElement>('[data-action="close-ledger"]')?.click(); };
 }
 
