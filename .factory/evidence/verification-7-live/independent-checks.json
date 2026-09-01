@@ -1,0 +1,77 @@
+{
+  "checkedAt": "2026-09-01T20:08:40.074Z",
+  "checks": [
+    "Demo opens 32 representative catalog items.",
+    "Demo isolation banner remains visible.",
+    "Collection filter narrows the catalog to 11 items.",
+    "Select visible reports the exact 11-item scope.",
+    "Patch CSV contains one header and 11 changed rows.",
+    "Patch CSV preserves a zero-padded source ID.",
+    "Patch CSV contains both staged tags.",
+    "Undo CSV contains one header and 11 original rows.",
+    "Undo CSV contains original tag values.",
+    "Batch undo returns the workspace to no staged edits.",
+    "Demo review and export make only same-origin requests.",
+    "Demo review and export set no cookies.",
+    "Demo review and export produce no console or page errors.",
+    "Empty CSV receives specific recovery guidance.",
+    "Headings-only CSV receives specific recovery guidance.",
+    "Unfinished quoted field receives specific recovery guidance.",
+    "A CSV one byte above 15 MiB receives split-file guidance.",
+    "Duplicate IDs are stopped with correction guidance.",
+    "Blank IDs are stopped with correction guidance.",
+    "A valid quoted CSV opens immediately after prior input errors.",
+    "A multiline CSV field remains readable after import.",
+    "Recovered import exports exact expected patch bytes.",
+    "Keyboard focus starts on the skip link.",
+    "Skip link moves keyboard focus to main content.",
+    "Sample action fits fully in the first 390 × 844 viewport.",
+    "Enter activates the sample action.",
+    "Opening mobile filters places focus in the filter panel.",
+    "Escape closes filters and restores focus.",
+    "Space selects an item and retains logical focus.",
+    "Opening the mobile ledger places focus on its first control.",
+    "Escape closes the ledger and restores focus.",
+    "Keyboard focus has a visible solid outline.",
+    "Reduced-motion mode removes meaningful control motion.",
+    "At 200% root text size the mobile workspace has no horizontal overflow.",
+    "Mobile keyboard and resize checks produce no console or page errors.",
+    "The live page is controlled by its service worker.",
+    "The live service-worker cache identifies the candidate commit.",
+    "The populated sample reloads offline with 32 items.",
+    "Offline reload produces no console or page errors.",
+    "Populated mobile workspace has zero serious or critical Axe findings."
+  ],
+  "findings": [
+    "At 390 px after an offline reload, the persistent offline status exists in the DOM but CSS hides it."
+  ],
+  "requestOrigins": [
+    "https://collection-bulk-curator.sociobot.in"
+  ],
+  "requestCount": 5,
+  "cookies": [],
+  "errors": [],
+  "mobileErrors": [],
+  "offlineErrors": [],
+  "cacheNames": [
+    "collection-batch-desk-r225885557b0c-b1117a4af5be"
+  ],
+  "offlineStatus": {
+    "text": "Offline · local tools still work",
+    "display": "none",
+    "className": "offline-chip "
+  },
+  "axeViolations": [],
+  "patchPreview": [
+    "﻿ID,Tags",
+    "0001,\"uncatalogued, priority, fragile\"",
+    "0004,\"uncatalogued, priority, fragile\"",
+    "0007,\"uncatalogued, priority, fragile\""
+  ],
+  "undoPreview": [
+    "﻿ID,Tags",
+    "0001,uncatalogued",
+    "0004,uncatalogued",
+    "0007,uncatalogued"
+  ]
+}
