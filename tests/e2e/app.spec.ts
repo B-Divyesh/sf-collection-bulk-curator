@@ -222,9 +222,11 @@ test.describe('390 px accessibility regression coverage', () => {
     }
     for (const path of ['/privacy/', '/terms/']) {
       await page.goto(path);
-      const box = await page.locator('header a').boundingBox();
-      expect(box?.width).toBeGreaterThanOrEqual(44);
-      expect(box?.height).toBeGreaterThanOrEqual(44);
+      for (const locator of await page.locator('header a').all()) {
+        const box = await locator.boundingBox();
+        expect(box?.width).toBeGreaterThanOrEqual(44);
+        expect(box?.height).toBeGreaterThanOrEqual(44);
+      }
     }
   });
 });
@@ -340,6 +342,23 @@ test('gives transparent CSV and thumbnail inputs a visible label focus ring', as
   await expect(page.locator('.file-button')).toHaveCSS('outline-style', 'solid');
 });
 
+test('keeps the skip link, sample action, and mobile navigation operable by keyboard', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await page.keyboard.press('Tab');
+  await expect(page.locator('.skip-link')).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#main')).toBeFocused();
+
+  await page.getByRole('button', { name: 'Try it with sample data' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
+
+  await page.locator('.site-menu summary').focus();
+  await page.keyboard.press('Space');
+  await expect(page.getByLabel('Mobile primary').getByRole('link', { name: 'Privacy' })).toBeVisible();
+});
+
 test('confirmed New catalog clears the saved Desk Plus session', async ({ page }) => {
   await page.route('https://api.sociobot.in/api/v1/products/collection-bulk-curator/verify?*', (route) => route.fulfill({
     status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' })
@@ -357,6 +376,67 @@ test('confirmed New catalog clears the saved Desk Plus session', async ({ page }
   await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
   expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBeNull();
   await expect(page.getByRole('button', { name: /Resume local desk/ })).toHaveCount(0);
+});
+
+test('sets complete per-route metadata and ships product-styled legal and 404 pages', async ({ page }) => {
+  const routes = [
+    { path: '/', title: 'Collection Batch Desk — stage catalog edits safely', canonical: 'https://collection-bulk-curator.sociobot.in/' },
+    { path: '/?demo=1', title: 'Demo — Collection Batch Desk', canonical: 'https://collection-bulk-curator.sociobot.in/?demo=1' },
+    { path: '/privacy/', title: 'Privacy — Collection Batch Desk', canonical: 'https://collection-bulk-curator.sociobot.in/privacy/' },
+    { path: '/terms/', title: 'Terms — Collection Batch Desk', canonical: 'https://collection-bulk-curator.sociobot.in/terms/' },
+    { path: '/404.html', title: 'Page not found — Collection Batch Desk', canonical: 'https://collection-bulk-curator.sociobot.in/404.html' }
+  ];
+  for (const route of routes) {
+    await page.goto(route.path);
+    await expect(page).toHaveTitle(route.title);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', route.canonical);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute('content', 'https://collection-bulk-curator.sociobot.in/og-image.jpg');
+    await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
+    await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
+    await expect(page.locator('.skip-link')).toHaveCount(1);
+    await expect(page.locator('footer')).toContainText('Built by Param Factory · v1.0.1');
+  }
+  await page.goto('/404.html');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('This page was not found');
+  const socialSize = await page.evaluate(async () => {
+    const response = await fetch('/og-image.jpg');
+    const image = await createImageBitmap(await response.blob());
+    return { width: image.width, height: image.height };
+  });
+  expect(socialSize).toEqual({ width: 1200, height: 630 });
+});
+
+test('declares the Static Web Apps 404 and security response policy', async () => {
+  const config = JSON.parse(await readFile(resolve('public/staticwebapp.config.json'), 'utf8')) as {
+    globalHeaders: Record<string, string>;
+    responseOverrides: Record<string, { rewrite: string; statusCode: number }>;
+  };
+  expect(config.responseOverrides['404']).toEqual({ rewrite: '/404.html', statusCode: 404 });
+  expect(config.globalHeaders['Content-Security-Policy']).toContain("frame-ancestors 'none'");
+  expect(config.globalHeaders['Content-Security-Policy']).toContain("script-src 'self'");
+  expect(config.globalHeaders['X-Content-Type-Options']).toBe('nosniff');
+  expect(config.globalHeaders['Referrer-Policy']).toBe('strict-origin-when-cross-origin');
+});
+
+test('keeps 390px demo controls at 44px and the selected large workspace within the viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/?demo=1');
+  for (const control of [page.getByRole('button', { name: 'Reset demo' }), page.getByRole('button', { name: 'Start for real' })]) {
+    const box = await control.boundingBox();
+    expect(box?.height).toBeGreaterThanOrEqual(44);
+  }
+  await page.getByRole('button', { name: 'Filters', exact: true }).click();
+  const switchBox = await page.locator('.switch-row').boundingBox();
+  expect(switchBox?.height).toBeGreaterThanOrEqual(44);
+  await page.getByRole('button', { name: 'Close filters' }).click();
+
+  const rows = Array.from({ length: 1_000 }, (_, index) => `${String(index + 1).padStart(4, '0')},Item ${index + 1},Archive`).join('\n');
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await page.locator('#csv-file').setInputFiles({ name: 'large.csv', mimeType: 'text/csv', buffer: Buffer.from(`ID,Title,Collection\n${rows}`) });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.getByRole('button', { name: 'Select all matching' }).click();
+  await expect(page.getByText('1,000 selected items')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390);
 });
 
 test('progressively renders a thousand-row catalog while preserving bulk selection', async ({ page }) => {

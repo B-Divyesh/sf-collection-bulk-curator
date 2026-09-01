@@ -14,6 +14,24 @@ async function stageFirstSampleLocation(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Stage for 1 item' }).click();
 }
 
+async function startRealImportFromDemo(page: Page): Promise<void> {
+  await page.goto('/?demo=1');
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits safely');
+}
+
+test('@claim:sample-catalog @regression:cold-mobile-sample-action keeps the primary sample action in the first 390px viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  const action = page.getByRole('button', { name: 'Try it with sample data' });
+  const box = await action.boundingBox();
+  expect(box).not.toBeNull();
+  expect((box?.y ?? Infinity) + (box?.height ?? 0)).toBeLessThanOrEqual(844);
+  await action.click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
+  await expect(page.locator('.item-card')).toHaveCount(32);
+});
+
 test('@claim:local-data demo catalog processing makes only same-origin requests', async ({ page, baseURL }) => {
   const requests: string[] = [];
   page.on('request', (request) => requests.push(request.url()));
@@ -114,4 +132,123 @@ test('@claim:desk-plus-price shows the advertised one-time Desk Plus offer and c
   await page.locator('.license-menu > summary').click();
   await expect(page.getByRole('heading', { name: 'Desk Plus · $19' })).toBeVisible();
   await expect(page.getByRole('link', { name: 'Buy once' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/collection-bulk-curator/checkout');
+});
+
+test('@claim:desk-plus-session saves a verified workspace immediately and restores it after reload', async ({ page }) => {
+  await page.route('https://api.sociobot.in/api/v1/products/collection-bulk-curator/verify?*', (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' })
+  }));
+  await page.goto('/?license=paid-session-token');
+  await expect(page.locator('.license-menu summary span')).toHaveText('Plus active');
+  await page.locator('#csv-file').setInputFiles({ name: 'paid.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title,Location\n0007,Vase,Shelf 2') });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await expect.poll(() => page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).not.toBeNull();
+  await page.reload();
+  await expect(page.getByRole('button', { name: /Resume local desk/ })).toBeVisible();
+  await page.getByRole('button', { name: /Resume local desk/ }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
+});
+
+test('@claim:daily-license-check verifies a saved license once during its daily cache window', async ({ page }) => {
+  let requests = 0;
+  await page.route('https://api.sociobot.in/api/v1/products/collection-bulk-curator/verify?*', (route) => {
+    requests += 1;
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) });
+  });
+  await page.goto('/?license=daily-test-token');
+  await expect.poll(() => requests).toBe(1);
+  await expect(page.locator('.license-menu summary span')).toHaveText('Plus active');
+  await page.reload();
+  await expect(page.locator('.license-menu summary span')).toHaveText('Plus active');
+  expect(requests).toBe(1);
+});
+
+test('@claim:no-tracking uses no third-party runtime request or cookie during the demo flow', async ({ page, context, baseURL }) => {
+  const requests: string[] = [];
+  page.on('request', (request) => requests.push(request.url()));
+  await page.goto('/?demo=1');
+  await stageFirstSampleLocation(page);
+  const expectedOrigin = new URL(baseURL!).origin;
+  expect(requests).not.toHaveLength(0);
+  expect(requests.every((request) => new URL(request).origin === expectedOrigin)).toBe(true);
+  expect(await context.cookies()).toEqual([]);
+});
+
+test('@claim:csv-heading-mapping maps nonstandard headings to a review desk', async ({ page }) => {
+  await startRealImportFromDemo(page);
+  await page.locator('#csv-file').setInputFiles({
+    name: 'field-notes.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('Reference,Artifact,Keywords,Room,Grade,Group\nA-9,Small vessel,ceramic,Case 2,Good,Field notes')
+  });
+  await page.locator('select[name="id"]').selectOption('Reference');
+  await page.locator('select[name="title"]').selectOption('Artifact');
+  await page.locator('select[name="tags"]').selectOption('Keywords');
+  await page.locator('select[name="location"]').selectOption('Room');
+  await page.locator('select[name="condition"]').selectOption('Grade');
+  await page.locator('select[name="collection"]').selectOption('Group');
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
+  await expect(page.getByRole('heading', { name: 'Small vessel' })).toBeVisible();
+});
+
+test('@claim:csv-format-support imports a BOM CSV with quoted commas, escaped quotes, and multiline fields', async ({ page }) => {
+  await startRealImportFromDemo(page);
+  await page.locator('#csv-file').setInputFiles({
+    name: 'quoted.csv', mimeType: 'text/csv',
+    buffer: Buffer.from('\uFEFFID,Title,Location\r\n0007,"Cup, blue","Line one\nLine two ""quoted"""\r\n')
+  });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
+  await expect(page.getByRole('heading', { name: 'Cup, blue' })).toBeVisible();
+});
+
+test('@claim:id-validation blocks blank and duplicate IDs before a review desk opens', async ({ page }) => {
+  await startRealImportFromDemo(page);
+  await page.locator('#csv-file').setInputFiles({ name: 'blank.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title\n   ,No ID') });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await expect(page.locator('.toast')).toContainText('blank ID');
+
+  await startRealImportFromDemo(page);
+  await page.locator('#csv-file').setInputFiles({ name: 'duplicate.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title\n0007,Vase\n0007,Cup') });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await expect(page.locator('.toast')).toContainText('Duplicate ID');
+});
+
+test('@claim:local-thumbnail-matching attaches a local image by its mapped filename', async ({ page }) => {
+  await startRealImportFromDemo(page);
+  await page.locator('#csv-file').setInputFiles({ name: 'thumbs.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title,Image\n0007,Vase,card.png') });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.locator('#image-files').setInputFiles({
+    name: 'card.png', mimeType: 'image/png',
+    buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64')
+  });
+  await expect(page.locator('.item-image img')).toHaveAttribute('src', /^blob:/);
+});
+
+test('@claim:filter-visible-results search narrows the visible sample cards', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await page.getByLabel('Search everything').fill('Survey token');
+  await expect(page.locator('.item-card')).toHaveCount(8);
+  await expect(page.getByText('8 of 32 items')).toBeVisible();
+});
+
+test('@claim:source-rows-unchanged keeps the original source value in the undo CSV', async ({ page }) => {
+  await page.goto('/?demo=1');
+  await stageFirstSampleLocation(page);
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export undo CSV' }).click();
+  expect(await downloadedText(await download)).toContain('0001,Map drawer');
+});
+
+test('@claim:free-core-workflow stages and exports a patch without a license', async ({ page }) => {
+  await page.goto('/');
+  await page.locator('#csv-file').setInputFiles({ name: 'free.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title,Location\n0007,Vase,Shelf 2') });
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await page.locator('[data-select-key]').check();
+  await page.getByLabel('Field', { exact: true }).selectOption('location');
+  await page.getByLabel('New value').fill('Archive room');
+  await page.getByRole('button', { name: 'Stage for 1 item' }).click();
+  const download = page.waitForEvent('download');
+  await page.getByRole('button', { name: 'Export patch CSV' }).click();
+  expect(await downloadedText(await download)).toContain('0007,Archive room');
 });

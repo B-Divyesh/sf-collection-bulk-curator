@@ -1,5 +1,12 @@
 [
   {
+    "id": "sample-catalog",
+    "claim": "Try it with sample data opens a 32-item sample catalog in one click",
+    "where": "landing primary action, README, demo guide",
+    "test": "npm test -- --grep @claim:sample-catalog",
+    "sandbox": "fresh 390 × 844 browser context; assert the primary action is fully in the opening viewport, activate it, and count 32 sample items"
+  },
+  {
     "id": "local-data",
     "claim": "Catalog data stays in the browser by default",
     "where": "landing facts, README, privacy notice",
@@ -37,7 +44,7 @@
   {
     "id": "demo-isolation",
     "claim": "Demo sample data does not touch real desk storage",
-    "where": "demo banner, README, .factory/demo.md",
+    "where": "demo banner, README, demo guide",
     "test": "npm test -- --grep @claim:demo-isolation",
     "sandbox": "seed a real-session sentinel; open ?demo=1; reset and exit; assert only demo: storage changes"
   },
@@ -53,6 +60,76 @@
     "claim": "Desk Plus is a $19 one-time license",
     "where": "landing facts, Desk Plus panel, README, terms",
     "test": "npm test -- --grep @claim:desk-plus-price",
-    "sandbox": "fresh landing page; assert $19 one-time offer and documented Sociobot checkout route"
+    "sandbox": "fresh landing page; assert the $19 offer and hosted checkout route"
+  },
+  {
+    "id": "desk-plus-session",
+    "claim": "Desk Plus saves and restores an opened local workspace",
+    "where": "Desk Plus panel, README, terms, privacy notice",
+    "test": "npm test -- --grep @claim:desk-plus-session",
+    "sandbox": "mock a verified license; open a CSV review desk before editing; assert local save and next-load restore"
+  },
+  {
+    "id": "daily-license-check",
+    "claim": "License verification happens at most once each day",
+    "where": "privacy notice",
+    "test": "npm test -- --grep @claim:daily-license-check",
+    "sandbox": "mock license verification; reload within the cached day and assert no second request"
+  },
+  {
+    "id": "no-tracking",
+    "claim": "The app has no analytics, ads, tracking pixels, cookies, or third-party runtime scripts",
+    "where": "README, privacy notice",
+    "test": "npm test -- --grep @claim:no-tracking",
+    "sandbox": "fresh browser context; load and use the demo; assert all requests are same-origin and the cookie jar is empty"
+  },
+  {
+    "id": "csv-heading-mapping",
+    "claim": "Maps arbitrary CSV headings to catalog fields",
+    "where": "README, mapping screen",
+    "test": "npm test -- --grep @claim:csv-heading-mapping",
+    "sandbox": "start at the demo entry point, switch to real import, map nonstandard headings, and open the review desk"
+  },
+  {
+    "id": "csv-format-support",
+    "claim": "Reads UTF-8 BOM CSVs with quoted commas, escaped quotes, and multiline fields",
+    "where": "README",
+    "test": "npm test -- --grep @claim:csv-format-support",
+    "sandbox": "start at the demo entry point, switch to real import, upload a representative CSV, and open the review desk"
+  },
+  {
+    "id": "id-validation",
+    "claim": "Blocks blank and duplicate IDs before patching",
+    "where": "README, mapping recovery messages",
+    "test": "npm test -- --grep @claim:id-validation",
+    "sandbox": "start at the demo entry point, switch to real import, and assert blank and duplicate-ID recovery messages"
+  },
+  {
+    "id": "local-thumbnail-matching",
+    "claim": "Matches local thumbnails by filename",
+    "where": "landing import help, README",
+    "test": "npm test -- --grep @claim:local-thumbnail-matching",
+    "sandbox": "start at the demo entry point, switch to real import, attach a local image with the mapped filename, and assert a blob thumbnail renders"
+  },
+  {
+    "id": "filter-visible-results",
+    "claim": "Search and filters narrow the visible catalog items",
+    "where": "README, workspace controls",
+    "test": "npm test -- --grep @claim:filter-visible-results",
+    "sandbox": "demo entry point; search a known sample title and assert only matching item cards remain visible"
+  },
+  {
+    "id": "source-rows-unchanged",
+    "claim": "Staged changes do not modify source rows",
+    "where": "landing how-it-works copy, README",
+    "test": "npm test -- --grep @claim:source-rows-unchanged",
+    "sandbox": "demo entry point; stage a location edit and assert the undo CSV contains the original source value"
+  },
+  {
+    "id": "free-core-workflow",
+    "claim": "Core import, filtering, staging, undo, and export are free",
+    "where": "Desk Plus panel, README, terms",
+    "test": "npm test -- --grep @claim:free-core-workflow",
+    "sandbox": "fresh unsigned browser; import a one-row CSV, stage an edit, and export a patch without a license"
   }
 ]

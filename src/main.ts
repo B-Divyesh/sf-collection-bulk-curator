@@ -4,6 +4,9 @@ import { buildChangeExport, mappingConflict, unsafeIdCount } from './catalog';
 import { editableFields, type CatalogRow, type ChangeBatch, type ColumnMap, type EditableField, type FieldChange, type RowChanges } from './types';
 
 const PRODUCT_SLUG = 'collection-bulk-curator';
+const PRODUCT_NAME = 'Collection Batch Desk';
+const PRODUCT_VERSION = 'v1.0.1';
+const SITE_URL = 'https://collection-bulk-curator.sociobot.in';
 const BILLING_BASE = import.meta.env.VITE_BILLING_API_BASE || 'https://api.sociobot.in/api/v1';
 const LICENSE_KEY = `sb_license:${PRODUCT_SLUG}`;
 const LICENSE_CACHE_KEY = `${LICENSE_KEY}:verdict`;
@@ -44,7 +47,7 @@ const state = {
   licenseChecking: false,
   online: navigator.onLine,
   theme: (localStorage.getItem('cbd-theme') as Theme | null) ?? 'light',
-  demo: new URL(location.href).searchParams.get('demo') === '1'
+  demo: (() => { const url = new URL(location.href); return url.searchParams.get('demo') === '1' || url.pathname === '/demo'; })()
 };
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
@@ -54,7 +57,7 @@ function esc(value: unknown): string {
   return String(value ?? '').replace(/[&<>"]/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[char]!);
 }
 
-function icon(name: 'pin' | 'layers' | 'route' | 'undo' | 'download' | 'filter' | 'moon' | 'sun' | 'lock' | 'check' | 'image'): string {
+function icon(name: 'pin' | 'layers' | 'route' | 'undo' | 'download' | 'filter' | 'moon' | 'sun' | 'lock' | 'check' | 'image' | 'menu'): string {
   const paths = {
     pin: '<path d="M12 21s6-5.1 6-12a6 6 0 1 0-12 0c0 6.9 6 12 6 12Z"/><circle cx="12" cy="9" r="2"/>',
     layers: '<path d="m12 3-9 5 9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/>',
@@ -66,7 +69,8 @@ function icon(name: 'pin' | 'layers' | 'route' | 'undo' | 'download' | 'filter' 
     sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
     lock: '<rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/>',
     check: '<path d="m5 12 4 4L19 6"/>',
-    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 15-5-5L5 20"/>'
+    image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 15-5-5L5 20"/>',
+    menu: '<path d="M4 7h16M4 12h16M4 17h16"/>'
   };
   return `<svg aria-hidden="true" viewBox="0 0 24 24">${paths[name]}</svg>`;
 }
@@ -75,11 +79,16 @@ function shell(content: string): string {
   return `
     <div class="contour-bg" aria-hidden="true"></div>
     <header class="site-header">
-      <a class="brand" href="#" data-action="home" aria-label="Collection Batch Desk, start page">
+      <a class="brand" href="/" data-action="home" aria-label="Collection Batch Desk, start page">
         <span class="brand-mark">${icon('layers')}</span>
         <span><strong>Collection Batch Desk</strong><small>Reversible catalog fieldwork</small></span>
       </a>
       <div class="header-actions">
+        <nav class="desktop-nav" aria-label="Primary"><a href="/?demo=1">Demo</a><a href="/#how-it-works">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
+        <details class="site-menu">
+          <summary aria-label="Site navigation">${icon('menu')}</summary>
+          <nav aria-label="Mobile primary"><a href="/?demo=1">Demo</a><a href="/#how-it-works">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
+        </details>
         <span class="offline-chip ${state.online ? 'is-hidden' : ''}" role="status">Offline · local tools still work</span>
         <button class="icon-button" type="button" data-action="theme" aria-label="Use ${state.theme === 'light' ? 'dark' : 'light'} theme">${icon(state.theme === 'light' ? 'moon' : 'sun')}</button>
         <details class="license-menu">
@@ -92,7 +101,8 @@ function shell(content: string): string {
     <main id="main" tabindex="-1">${content}</main>
     <footer>
       <span>Your catalog stays in this browser. Generated field-desk illustration.</span>
-      <nav aria-label="Legal"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-collection-bulk-curator" rel="noreferrer">Source</a></nav>
+      <nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-collection-bulk-curator" rel="noreferrer">Source</a></nav>
+      <span class="build-id">Built by Param Factory · ${PRODUCT_VERSION}</span>
     </footer>
     <div class="toast" aria-live="polite" aria-atomic="true">${esc(state.notice)}</div>`;
 }
@@ -117,6 +127,7 @@ function importScreen(): string {
       <p class="eyebrow"><span>01</span> Start</p>
       <h1 id="page-title">Stage bulk catalog edits safely</h1>
       <p class="lede">For collectors updating a chosen subset without losing the original catalog.</p>
+      <div class="hero-actions"><button class="button primary" type="button" data-action="demo">Try it with sample data</button><p>Loads 32 sample items in the review desk.</p></div>
       <div class="trust-row"><span>${icon('lock')} Catalog stays in your browser</span><span>${icon('route')} Works offline after first visit</span><span>${icon('lock')} $19 once for Desk Plus</span></div>
       ${saved && state.licenseValid ? `<button type="button" class="saved-session" data-action="restore-session"><span><b>Resume local desk</b><small>${esc(saved.fileName)} · saved ${new Date(saved.savedAt).toLocaleString()}</small></span><span aria-hidden="true">→</span></button>` : ''}
     </div>
@@ -135,13 +146,11 @@ function importScreen(): string {
         <span class="drop-icon">${icon('download')}</span><strong>Drop CSV here or browse</strong><small>UTF-8 CSV · first row must be headings</small>
       </label>
       <div class="import-aside">
-        <button class="button primary" type="button" data-action="demo">Try it with sample data</button>
-        <p class="demo-action-note">Loads 32 sample items in the review desk.</p>
         <p><b>Optional thumbnails</b><br>Select image files after the CSV. They are matched by filename and stay local.</p>
       </div>
     </section>
   </section>
-  <section class="method" aria-labelledby="method-title">
+  <section class="method" id="how-it-works" aria-labelledby="method-title">
     <p class="eyebrow">How it works</p><h2 id="method-title">Review, stage, and export</h2>
     <ol><li><span>01</span><div><b>Filter items</b><p>Search titles and IDs. Then filter collection, location, or condition.</p></div></li><li><span>02</span><div><b>Stage field changes</b><p>Select visible items. Stage one field at a time. Source rows stay unchanged.</p></div></li><li><span>03</span><div><b>Export both files</b><p>Export a patch CSV and an undo CSV with the original values.</p></div></li></ol>
   </section>`);
@@ -162,7 +171,7 @@ function mappingScreen(): string {
   const optionList = (value: string, optional = true) => `${optional ? '<option value="">Not included</option>' : '<option value="">Choose a column</option>'}${parsed.headers.map((header) => `<option value="${esc(header)}" ${header === value ? 'selected' : ''}>${esc(header)}</option>`).join('')}`;
   const sample = parsed.rows.slice(0, 3);
   return shell(`<section class="map-page" aria-labelledby="page-title">
-    <div class="section-heading"><div><p class="eyebrow"><span>02</span> Map columns</p><h1 id="page-title">Map your catalog columns</h1><p>Choose the headings for IDs and editable details. Original headings and values are not rewritten.</p></div><button class="button text-button" data-action="back-import">← Choose another file</button></div>
+    <div class="section-heading"><div><p class="eyebrow"><span>02</span> Map columns</p><h1 id="page-title">Map your catalog columns</h1><p>Choose the headings for IDs and editable details.</p></div><button class="button text-button" data-action="back-import">← Choose another file</button></div>
     <form id="mapping-form" class="mapping-grid">
       <label><span>Item ID <b>Required</b></span><select name="id" required>${optionList(defaults.id, false)}</select><small>Exported exactly as supplied, including leading zeros.</small></label>
       <label><span>Display title</span><select name="title">${optionList(defaults.title)}</select></label>
@@ -274,8 +283,38 @@ function focusSelector(element: Element | null = document.activeElement): string
   return null;
 }
 
+function setMeta(selector: string, content: string): void {
+  document.head.querySelector<HTMLMetaElement>(selector)?.setAttribute('content', content);
+}
+
+function updateMetadata(): void {
+  const screenTitle = state.demo
+    ? `Demo — ${PRODUCT_NAME}`
+    : state.screen === 'mapping'
+      ? `${PRODUCT_NAME} — map catalog columns`
+      : state.screen === 'workspace'
+        ? `${PRODUCT_NAME} — review catalog items`
+        : `${PRODUCT_NAME} — stage catalog edits safely`;
+  const description = state.demo
+    ? 'Try a 32-item sample catalog. Stage reversible edits, then export patch and undo CSV files.'
+    : 'Review and stage reversible collection edits locally, then export a patch CSV and undo manifest.';
+  const url = new URL(location.href);
+  if (state.demo) url.searchParams.set('demo', '1');
+  else url.searchParams.delete('demo');
+  url.searchParams.delete('license');
+  document.title = screenTitle;
+  document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute('href', `${SITE_URL}${url.pathname}${url.search}`);
+  setMeta('meta[name="description"]', description);
+  setMeta('meta[property="og:title"]', screenTitle);
+  setMeta('meta[property="og:description"]', description);
+  setMeta('meta[property="og:url"]', `${SITE_URL}${url.pathname}${url.search}`);
+  setMeta('meta[name="twitter:title"]', screenTitle);
+  setMeta('meta[name="twitter:description"]', description);
+}
+
 function render(restoreFocus = focusSelector()): void {
   app.innerHTML = state.screen === 'import' ? importScreen() : state.screen === 'mapping' ? mappingScreen() : workspaceScreen();
+  updateMetadata();
   bindCommon();
   if (state.screen === 'import') bindImport();
   if (state.screen === 'mapping') bindMapping();
@@ -473,7 +512,7 @@ function bindMapping(): void {
     state.mapping = mapping;
     state.rows = rowsFromParsed(parsed, mapping);
     state.selection.clear(); state.renderLimit = CATALOG_PAGE_SIZE;
-    state.screen = 'workspace'; render(); document.querySelector<HTMLElement>('#main')?.focus();
+    state.screen = 'workspace'; persistSession(); render(); document.querySelector<HTMLElement>('#main')?.focus();
   });
 }
 
@@ -627,7 +666,8 @@ function initializeLicense(): void {
 window.addEventListener('online', () => { state.online = true; render(); announce('Back online. Local work was not interrupted.'); });
 window.addEventListener('offline', () => { state.online = false; render(); announce('You are offline. This desk and your local files still work.'); });
 window.addEventListener('popstate', () => {
-  const wantsDemo = new URL(location.href).searchParams.get('demo') === '1';
+  const url = new URL(location.href);
+  const wantsDemo = url.searchParams.get('demo') === '1' || url.pathname === '/demo';
   if (wantsDemo && !state.demo) enterDemo(false);
   if (!wantsDemo && state.demo) startForReal();
 });

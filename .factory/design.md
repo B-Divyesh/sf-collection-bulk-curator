@@ -57,6 +57,12 @@ Prompt sheet:
 
 Generation: Azure AI Foundry factory image deployment through `/opt/fleet/lib/gen-image.sh`, 2026-08-28. The generated image is original to this product; prompt is also stored beside the source asset. It is disclosed as AI-generated in the footer.
 
+The social preview, `public/og-image.jpg`, is a 1200 × 630 center crop derived
+from that same approved illustration with ImageMagick on 2026-09-01. The
+180 × 180 `public/apple-touch-icon.png` is an approved square crop of the same
+asset. They add no new subject matter, brands, or text and retain the original
+asset's provenance.
+
 ## Accessibility and performance
 
 Both color treatments target WCAG AA. Focus is a 3 px ochre/cream double ring, not color change alone. The illustration has fixed dimensions, a concise alt, AVIF/WebP sources, and a PNG source retained only under `assets/src/`. Mobile uses the smaller responsive derivative; all shipped hero formats remain below 300 KB. The application uses no web fonts or runtime dependencies.
