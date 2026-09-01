@@ -1,0 +1,246 @@
+CLAIM COMMAND: npm test -- --grep @claim:local-data
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:local-data
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/claims.test.ts (1 test) 14ms
+ ✓ src/catalog.test.ts (4 tests) 82ms
+ ✓ src/csv.test.ts (2 tests) 7ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:56:32
+   Duration  1.78s (transform 571ms, setup 0ms, collect 696ms, tests 104ms, environment 1ms, prepare 1.02s)
+
+[WebServer] (node:909) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:953) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:971) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:971) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (11.3s)
+CLAIM EXIT: 0
+CLAIM COMMAND: npm test -- --grep @claim:remote-thumbnails
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:remote-thumbnails
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/claims.test.ts (1 test) 71ms
+ ✓ src/csv.test.ts (2 tests) 6ms
+ ✓ src/catalog.test.ts (4 tests) 7ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:56:48
+   Duration  1.58s (transform 646ms, setup 0ms, collect 609ms, tests 84ms, environment 4ms, prepare 1.37s)
+
+[WebServer] (node:1271) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:1314) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:1349) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1349) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (10.3s)
+CLAIM EXIT: 0
+
+CLAIM COMMAND: npm test -- --grep @claim:exact-ids
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:exact-ids
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/claims.test.ts (1 test) 93ms
+ ✓ src/csv.test.ts (2 tests) 8ms
+ ✓ src/catalog.test.ts (4 tests) 7ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:57:03
+   Duration  1.61s (transform 475ms, setup 0ms, collect 502ms, tests 108ms, environment 1ms, prepare 1.18s)
+
+[WebServer] (node:1651) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:1694) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:1728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1728) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (10.5s)
+CLAIM EXIT: 0
+
+CLAIM COMMAND: npm test -- --grep @claim:patch-csv
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:patch-csv
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/claims.test.ts (1 test) 94ms
+ ✓ src/csv.test.ts (2 tests) 7ms
+ ✓ src/catalog.test.ts (4 tests) 7ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:57:18
+   Duration  1.67s (transform 322ms, setup 0ms, collect 446ms, tests 109ms, environment 1ms, prepare 1.32s)
+
+[WebServer] (node:2028) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2072) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:2090) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2090) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (10.8s)
+CLAIM EXIT: 0
+
+CLAIM COMMAND: npm test -- --grep @claim:undo-manifest
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:undo-manifest
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/catalog.test.ts (4 tests) 73ms
+ ✓ src/claims.test.ts (1 test) 77ms
+ ✓ src/csv.test.ts (2 tests) 5ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:57:33
+   Duration  1.67s (transform 512ms, setup 0ms, collect 538ms, tests 155ms, environment 1ms, prepare 1.48s)
+
+[WebServer] (node:2391) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2434) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:2470) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2470) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (10.8s)
+CLAIM EXIT: 0
+
+CLAIM COMMAND: npm test -- --grep @claim:demo-isolation
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:demo-isolation
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/claims.test.ts (1 test) 10ms
+ ✓ src/csv.test.ts (2 tests) 6ms
+ ✓ src/catalog.test.ts (4 tests) 7ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:57:49
+   Duration  1.59s (transform 535ms, setup 0ms, collect 526ms, tests 23ms, environment 1ms, prepare 1.32s)
+
+[WebServer] (node:2750) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:2794) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:2812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:2812) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (10.9s)
+CLAIM EXIT: 0
+
+CLAIM COMMAND: npm test -- --grep @claim:offline-reload
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:offline-reload
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/claims.test.ts (1 test) 10ms
+ ✓ src/csv.test.ts (2 tests) 69ms
+ ✓ src/catalog.test.ts (4 tests) 8ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:58:04
+   Duration  1.51s (transform 509ms, setup 0ms, collect 633ms, tests 87ms, environment 4ms, prepare 1.03s)
+
+[WebServer] (node:3115) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:3158) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:3194) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3194) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (10.5s)
+CLAIM EXIT: 0
+
+CLAIM COMMAND: npm test -- --grep @claim:desk-plus-price
+
+> collection-bulk-curator@1.0.0 test
+> vitest run && playwright test --grep @claim:desk-plus-price
+
+
+ RUN  v3.2.7 /work/repo
+
+ ✓ src/claims.test.ts (1 test) 9ms
+ ✓ src/csv.test.ts (2 tests) 60ms
+ ✓ src/catalog.test.ts (4 tests) 7ms
+
+ Test Files  3 passed (3)
+      Tests  7 passed (7)
+   Start at  18:58:19
+   Duration  1.57s (transform 441ms, setup 0ms, collect 602ms, tests 76ms, environment 1ms, prepare 1.17s)
+
+[WebServer] (node:3493) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:3536) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 1 test using 1 worker
+(node:3555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+·
+  1 passed (10.0s)
+CLAIM EXIT: 0

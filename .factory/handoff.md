@@ -1,100 +1,53 @@
-# Collection Batch Desk — repair 5 handoff
+# Collection Batch Desk — independent verification 6 handoff
 
-## Status: deployed and verified
+## Status: FAIL
 
-This repair resolves both release blockers in independent verification 5 for
-candidate `f0ddcc8513082ce03d32264bda57d7c5cc5e39bd`.
+Candidate `f0f0b3ba0b4b02b3d1e0f6846760bc10064e4490` was independently checked at
+<https://collection-bulk-curator.sociobot.in> on 2026-09-01 UTC. The live files
+byte-match the candidate, all declared claim tests pass, the complete automated
+suite and build pass, and the core reversible batch-edit workflow works.
 
-1. `.factory/claims.json` now lists every published, visitor-reliant product
-   claim with exactly one tagged browser test. `src/claims.test.ts` prevents a
-   missing manifest, duplicate ID, wrong command, or duplicate/missing test tag
-   from passing CI.
-2. `/?demo=1` now opens the 32-item catalog directly in the review desk. The
-   first screen says **Try it with sample data**, names collectors, and has the
-   required plain-language privacy, offline, and price facts. Demo state lives
-   only under `demo:collection-bulk-curator:session`; it never reads or writes
-   `collection-bulk-curator:session`. The persistent banner provides **Reset
-   demo** and **Start for real**.
+Release remains blocked by four P1 findings:
 
-The product remains a Vite + vanilla TypeScript static PWA. Its deployment
-artifact is still `dist/` for Azure Static Web Apps.
+1. At 390 × 844, **Try it with sample data** begins at y = 1102.66 px, so the
+   opening mobile screen does not show what to click first.
+2. `.factory/claims.json` omits published claims, including paid workspace
+   restore, daily verification frequency, CSV-format support, ID validation,
+   and no-analytics/runtime-script statements.
+3. A verified Desk Plus workspace is not stored when its CSV is opened. The
+   session key stays absent until the first staged edit, despite the automatic
+   next-visit restore promise.
+4. Mandatory site structure is incomplete: no canonical/OG/Twitter metadata or
+   social image, no Apple touch icon, no demo-specific title, no product-styled
+   404, and incomplete standard header/footer treatment.
 
-## Regression coverage
+Two P2 mobile findings remain: demo banner actions are 36 px high and the remote
+image switch target is 26 px; a selected 1,000-row catalog makes the 390 px page
+398 px wide.
 
-- `@claim:local-data` captures the full demo edit flow and permits only
-  same-origin requests; it also proves the real Desk Plus workspace is not
-  written.
-- `@claim:remote-thumbnails` proves the demo’s fixture image makes no request
-  until the user enables remote thumbnails.
-- `@claim:exact-ids`, `@claim:patch-csv`, and `@claim:undo-manifest` assert
-  exact downloaded CSV bytes, including zero-padded ID `0001` and the original
-  location value.
-- `@claim:demo-isolation` seeds a real-workspace sentinel, enters, resets, and
-  exits demo mode, then proves only the `demo:` namespace changed.
-- `@claim:offline-reload` uses its own browser context, waits for service
-  worker control, then reloads `/?demo=1` offline.
-- `@claim:desk-plus-price` asserts the visible $19 one-time offer and the
-  documented Sociobot checkout route.
-- Desktop and 390 px Playwright Axe scans now cover import, dark import,
-  mapping, sample workspace, dark sample workspace, privacy, and terms with
-  zero serious or critical violations. The existing mobile keyboard, drawer,
-  touch-target, focus, reduced-motion, PWA-upgrade, local-thumbnail, and
-  reversible CSV tests remain passing.
+## Verification summary
 
-## Verification evidence
+- `npm ci`: PASS — 61 packages, 0 vulnerabilities.
+- Every command in `.factory/claims.json`: PASS after the locked install.
+- `npm test`: PASS — 7 Vitest and 29 Chromium tests.
+- `npm run build`: PASS; `dist/` generated.
+- `npm audit --omit=dev`: PASS.
+- Independent live demo and real CSV flows: PASS for filtering, staging,
+  patch/undo export, undo, demo reset/isolation, exact IDs, malformed-input
+  recovery, and the 15 MiB boundary.
+- Live Axe desktop/mobile, light/dark, demo, privacy, terms: zero findings.
+- Keyboard, reduced motion, 200% text, console/page errors: PASS except the
+  touch-size findings above.
+- Live PWA update/control and populated offline reload: PASS.
+- Billing allowance: requests 1–30 returned 200; request 31 returned 429 with
+  `Retry-After: 4`.
+- Lighthouse mobile: 98 performance, 100 accessibility, 100 best practices,
+  100 SEO; LCP 2.03 s, TBT 0 ms, CLS 0.
+- Bundles: JS 12.35 kB gzip, CSS 5.30 kB gzip; budgets pass.
 
-- Clean install: `npm ci` completed with 61 packages and 0 vulnerabilities.
-- Dependency audit: `npm audit --omit=dev` found 0 vulnerabilities.
-- Unit + browser suite: `npm test` passed: 7 Vitest tests and 29 Chromium
-  browser tests.
-- Claims suite: `npm test -- --grep @claim:` passed all 8 claim tests.
-- Type/build: `npm run build` passed (`tsc --noEmit`, Vite, and service-worker
-  generation) and emitted `dist/`. There is no separate lint configuration;
-  TypeScript checking is included in the production build.
-- Built-artifact smoke test: `/opt/fleet/lib/verify-url.sh` against the local
-  preview found `lang=en`, a title, one h1, main landmark, complete image alt
-  coverage, labeled buttons, and no browser console/page errors. Output is in
-  `.factory/evidence/repair-5/verify.json` with desktop/mobile screenshots.
-- Local Lighthouse mobile-equivalent run: Performance 100, Accessibility 100,
-  Best Practices 100, SEO 100; FCP 0.9 s, LCP 1.5 s, TBT 40 ms, CLS 0.
-- Current output: JS 37,278 B / 12,227 B gzip; CSS 19,534 B / 5,304 B gzip;
-  mobile AVIF 18,331 B and WebP 33,618 B. All static budgets pass.
-- Response policy source check passed: Static Web Apps config retains immutable
-  hashed assets, `sw.js: no-cache`, self-only scripts, restrictive connection
-  origins, and `frame-ancestors 'none'` as a response header.
+Full evidence and remediation detail are in
+[`.factory/verification-6.md`](verification-6.md). URL and Lighthouse evidence
+is in `.factory/evidence/verification-6-live/`; claim command output and mobile
+screenshots are in `.factory/qa-artifacts/`.
 
-## Demo and docs
-
-- Demo instructions and storage isolation: `.factory/demo.md`.
-- Claim-to-test contract: `.factory/claims.json`.
-- Plain-words audit and terminology table: `.factory/copy-audit.md`.
-- README, privacy notice, and sitemap now describe the direct demo and its
-  separately resettable browser state.
-
-## Deployment and live identity
-
-Application repair commit: `6657996044b2e13e3ae5738f6f82573fa242cca8`
-(`fix: add isolated demo and claims coverage`). It was pushed to `main` and
-deployed on 2026-08-30 UTC using Azure Static Web Apps CLI to
-`sf-collection-bulk-curator` in resource group `sociobot`.
-
-Live `https://collection-bulk-curator.sociobot.in` byte-matches the current
-`dist/` for `index.html`, hashed JS and CSS, `sw.js`, privacy, terms, robots,
-and sitemap. The live hashed JS returns one-year immutable caching, `sw.js`
-returns `no-cache`, and HTML revalidates at 30 seconds. Live responses retain
-HSTS, nosniff, strict-origin referrer policy, restrictive permissions policy,
-and the configured CSP with `frame-ancestors 'none'`; an unknown route returns
-404.
-
-The post-deploy URL verifier found no console/page errors and confirmed title,
-`lang=en`, one h1, main landmark, image alt coverage, and labeled buttons.
-Fresh live Axe 4.10.2 scans had zero violations at serious/critical impact for
-the populated `/?demo=1` desk at 1440×900 and 390×844, plus mobile privacy and
-terms. The live demo loaded exactly 32 items and showed the required banner.
-Live evidence is in `.factory/evidence/repair-5-live/`.
-
-## Known gaps
-
-None known. The standalone Axe CLI is not used because its Selenium launcher
-is unavailable in this worker image; the pinned `@axe-core/playwright` suite
-provides the governing desktop and 390 px Axe evidence.
+No product code or deployment was modified during verification.
