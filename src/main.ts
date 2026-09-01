@@ -5,7 +5,7 @@ import { editableFields, type CatalogRow, type ChangeBatch, type ColumnMap, type
 
 const PRODUCT_SLUG = 'collection-bulk-curator';
 const PRODUCT_NAME = 'Collection Batch Desk';
-const PRODUCT_VERSION = 'v1.0.1';
+const PRODUCT_VERSION = 'v1.0.2';
 const SITE_URL = 'https://collection-bulk-curator.sociobot.in';
 const BILLING_BASE = import.meta.env.VITE_BILLING_API_BASE || 'https://api.sociobot.in/api/v1';
 const LICENSE_KEY = `sb_license:${PRODUCT_SLUG}`;
@@ -82,7 +82,7 @@ function shell(content: string): string {
     <header class="site-header">
       <a class="brand" href="/" data-action="home" aria-label="Collection Batch Desk, start page">
         <span class="brand-mark">${icon('layers')}</span>
-        <span><strong>Collection Batch Desk</strong><small>Reversible catalog fieldwork</small></span>
+        <span><strong>Collection Batch Desk</strong><small>Review catalog changes before export</small></span>
       </a>
       <div class="header-actions">
         <nav class="desktop-nav" aria-label="Primary"><a href="/?demo=1">Demo</a><a href="/#how-it-works">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
@@ -101,7 +101,7 @@ function shell(content: string): string {
     ${state.demo ? `<aside class="demo-banner" aria-label="Demo mode"><p><b>Demo — sample data, nothing is saved</b><small>The sample stays separate from your real desk.</small></p><div><button class="text-button" type="button" data-action="reset-demo">Reset demo</button><button class="button secondary" type="button" data-action="start-real">Start for real</button></div></aside>` : ''}
     <main id="main" tabindex="-1">${content}</main>
     <footer>
-      <span>Your catalog stays in this browser. Generated field-desk illustration.</span>
+      <span>Your catalog stays in this browser. Generated catalog review illustration.</span>
       <nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-collection-bulk-curator" rel="noreferrer">Source</a></nav>
       <span class="build-id">Built by Param Factory · ${PRODUCT_VERSION}</span>
     </footer>
@@ -110,7 +110,7 @@ function shell(content: string): string {
 
 function licensePanel(): string {
   return `<div class="license-panel">
-    <p class="eyebrow">One-time field kit</p>
+    <p class="eyebrow">One-time license</p>
     <h2>Desk Plus · $19</h2>
     <p>Automatically save and restore your local workspace next visit. Core review, undo, and both exports stay free.</p>
     ${state.licenseValid
@@ -126,7 +126,7 @@ function importScreen(): string {
   return shell(`<section class="hero" aria-labelledby="page-title">
     <div class="hero-copy">
       <p class="eyebrow"><span>01</span> Start</p>
-      <h1 id="page-title">Stage bulk catalog edits safely</h1>
+      <h1 id="page-title" tabindex="-1">Stage bulk catalog edits safely</h1>
       <p class="lede">For collectors updating a chosen subset without losing the original catalog.</p>
       <div class="hero-actions"><button class="button primary" type="button" data-action="demo">Try it with sample data</button><p>Loads 32 sample items in the review desk.</p></div>
       <div class="trust-row"><span>${icon('lock')} Catalog stays in your browser</span><span>${icon('route')} Works offline after first visit</span><span>${icon('lock')} $19 once for Desk Plus</span></div>
@@ -172,7 +172,7 @@ function mappingScreen(): string {
   const optionList = (value: string, optional = true) => `${optional ? '<option value="">Not included</option>' : '<option value="">Choose a column</option>'}${parsed.headers.map((header) => `<option value="${esc(header)}" ${header === value ? 'selected' : ''}>${esc(header)}</option>`).join('')}`;
   const sample = parsed.rows.slice(0, 3);
   return shell(`<section class="map-page" aria-labelledby="page-title">
-    <div class="section-heading"><div><p class="eyebrow"><span>02</span> Map columns</p><h1 id="page-title">Map your catalog columns</h1><p>Choose the headings for IDs and editable details.</p></div><button class="button text-button" data-action="back-import">← Choose another file</button></div>
+    <div class="section-heading"><div><p class="eyebrow"><span>02</span> Map columns</p><h1 id="page-title" tabindex="-1">Map your catalog columns</h1><p>Choose the headings for IDs and editable details.</p></div><button class="button text-button" data-action="back-import">← Choose another file</button></div>
     <form id="mapping-form" class="mapping-grid">
       <label><span>Item ID <b>Required</b></span><select name="id" required>${optionList(defaults.id, false)}</select><small>Exported exactly as supplied, including leading zeros.</small></label>
       <label><span>Display title</span><select name="title">${optionList(defaults.title)}</select></label>
@@ -240,7 +240,7 @@ function workspaceScreen(): string {
   const changedRows = Object.keys(state.changes).length;
   const changedFields = Object.values(state.changes).reduce((sum, fields) => sum + Object.keys(fields).length, 0);
   return shell(`<section class="workspace" aria-labelledby="page-title">
-    <div class="workspace-title"><div><p class="eyebrow"><span>03</span> Review desk · ${esc(state.fileName)}</p><h1 id="page-title">Review catalog items</h1></div><div class="desk-actions"><label class="button secondary file-button">${icon('image')} Add thumbnails<input id="image-files" type="file" accept="image/*" multiple></label><button class="button text-button" data-action="new-catalog">New catalog</button></div></div>
+    <div class="workspace-title"><div><p class="eyebrow"><span>03</span> Review desk · ${esc(state.fileName)}</p><h1 id="page-title" tabindex="-1">Review catalog items</h1></div><div class="desk-actions"><label class="button secondary file-button">${icon('image')} Add thumbnails<input id="image-files" type="file" accept="image/*" multiple></label><button class="button text-button" data-action="new-catalog">New catalog</button></div></div>
     <aside class="filters" aria-labelledby="filter-title"><div class="rail-heading"><span>${icon('filter')}</span><div><p class="eyebrow">Filters</p><h2 id="filter-title">Filter items</h2></div><button class="icon-button mobile-only" data-action="close-filters" aria-label="Close filters">×</button></div>
       <label for="search">Search everything</label><input id="search" type="search" value="${esc(state.query)}" placeholder="Title, ID, tag…">
       <label for="collection-filter">Collection</label><select id="collection-filter" data-filter="collection">${valueOptions('collection')}</select>
@@ -435,9 +435,8 @@ function enterDemo(pushHistory = true): void {
   state.licenseValid = false;
   loadDemoDesk(readDemoSession());
   if (pushHistory) history.pushState({}, '', demoUrl());
-  render();
+  render('#page-title');
   persistDemoSession();
-  document.querySelector<HTMLElement>('#main')?.focus();
   announce('Sample catalog opened in the demo desk.');
 }
 
@@ -446,9 +445,8 @@ function resetDemo(): void {
   state.demo = true;
   loadDemoDesk();
   history.replaceState({}, '', demoUrl());
-  render();
+  render('#page-title');
   persistDemoSession();
-  document.querySelector<HTMLElement>('#main')?.focus();
   announce('Demo reset to the 32-item sample catalog.');
 }
 
@@ -459,8 +457,7 @@ function startForReal(): void {
   const url = new URL(location.href);
   url.searchParams.delete('demo');
   history.replaceState({}, '', `${url.pathname}${url.search}${url.hash}`);
-  render();
-  document.querySelector<HTMLElement>('#main')?.focus();
+  render('#page-title');
   announce('Demo data discarded. Choose your catalog CSV to start for real.');
 }
 
@@ -474,15 +471,14 @@ function bindCommon(): void {
 }
 
 async function loadCsvFile(file: File): Promise<void> {
-  if (file.size > 15 * 1024 * 1024) { announce('That CSV is over 15 MB. Split the export into smaller fieldwork batches.'); return; }
+  if (file.size > 15 * 1024 * 1024) { announce('That CSV is over 15 MB. Split the CSV into smaller files.'); return; }
   try {
     state.parsed = parseCsv(await file.text());
     if (!state.parsed.rows.length) throw new Error('The CSV has headings but no item rows.');
     state.fileName = file.name;
     state.mapping = null;
     state.screen = 'mapping';
-    render();
-    document.querySelector<HTMLElement>('#main')?.focus();
+    render('#page-title');
   } catch (error) { announce(error instanceof Error ? error.message : 'The CSV could not be read.'); }
 }
 
@@ -498,7 +494,7 @@ function bindImport(): void {
 }
 
 function bindMapping(): void {
-  document.querySelector<HTMLElement>('[data-action="back-import"]')?.addEventListener('click', () => { state.screen = 'import'; render(); });
+  document.querySelector<HTMLElement>('[data-action="back-import"]')?.addEventListener('click', () => { state.screen = 'import'; render('#page-title'); });
   document.querySelector<HTMLFormElement>('#mapping-form')?.addEventListener('submit', (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget as HTMLFormElement);
@@ -515,7 +511,7 @@ function bindMapping(): void {
     state.mapping = mapping;
     state.rows = rowsFromParsed(parsed, mapping);
     state.selection.clear(); state.renderLimit = CATALOG_PAGE_SIZE;
-    state.screen = 'workspace'; persistSession(); render(); document.querySelector<HTMLElement>('#main')?.focus();
+    state.screen = 'workspace'; persistSession(); render('#page-title');
   });
 }
 
@@ -624,7 +620,7 @@ function resetDesk(): void {
   if (state.demo) { resetDemo(); return; }
   localStorage.removeItem(SESSION_KEY);
   clearDeskData();
-  render();
+  render('#page-title');
 }
 
 function persistSession(): void {
@@ -642,7 +638,7 @@ function readSavedSession(): SavedSession | null {
 function restoreSession(): void {
   const saved = readSavedSession(); if (!saved) return;
   state.fileName = saved.fileName; state.parsed = { headers: saved.headers, rows: saved.sourceRows }; state.mapping = saved.mapping; state.changes = saved.changes;
-  state.rows = rowsFromParsed(state.parsed, saved.mapping); state.screen = 'workspace'; render(); announce('Local desk restored. Reattach thumbnail files if needed.');
+  state.rows = rowsFromParsed(state.parsed, saved.mapping); state.screen = 'workspace'; render('#page-title'); announce('Local desk restored. Reattach thumbnail files if needed.');
 }
 
 async function verifyLicense(token: string, force = false): Promise<void> {

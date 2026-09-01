@@ -79,6 +79,51 @@ test('imports, stages, undoes, and exports a reversible batch', async ({ page })
   await expect(page.getByRole('button', { name: /Export patch CSV/ })).toBeDisabled();
 });
 
+test('focuses the current h1 after demo history and screen changes', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
+  await expect(page.locator('#page-title')).toHaveText('Review catalog items');
+  await expect(page.locator('#page-title')).toBeFocused();
+
+  await page.goBack();
+  await expect(page.locator('#page-title')).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.locator('#page-title')).toBeFocused();
+
+  await page.goForward();
+  await expect(page.locator('#page-title')).toHaveText('Review catalog items');
+  await expect(page.locator('#page-title')).toBeFocused();
+
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('#page-title')).toBeFocused();
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await expect(page.locator('#page-title')).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.locator('#page-title')).toBeFocused();
+
+  await page.locator('#csv-file').setInputFiles({ name: 'focus.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title\n0007,Vase') });
+  await expect(page.locator('#page-title')).toHaveText('Map your catalog columns');
+  await expect(page.locator('#page-title')).toBeFocused();
+  await page.getByRole('button', { name: /Open review desk/ }).click();
+  await expect(page.locator('#page-title')).toHaveText('Review catalog items');
+  await expect(page.locator('#page-title')).toBeFocused();
+});
+
+test('uses literal task copy in the header, license panel, artwork, and CSV size recovery', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.brand small')).toHaveText('Review catalog changes before export');
+  await expect(page.locator('body')).not.toContainText(/fieldwork|field kit|N 38/i);
+  expect(await page.locator('.hero-art').evaluate((element) => getComputedStyle(element, '::before').content)).toBe('none');
+
+  await page.locator('.license-menu > summary').click();
+  await expect(page.locator('.license-panel .eyebrow')).toHaveText('One-time license');
+
+  await page.locator('#csv-file').setInputFiles({
+    name: 'too-large.csv',
+    mimeType: 'text/csv',
+    buffer: Buffer.alloc(15 * 1024 * 1024 + 1)
+  });
+  await expect(page.locator('.toast')).toContainText('That CSV is over 15 MB. Split the CSV into smaller files.');
+});
+
 test('reports malformed CSV and rejects ambiguous IDs', async ({ page }) => {
   await page.goto('/');
   await page.locator('#csv-file').setInputFiles({ name: 'bad.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title\n001,A\n001,B') });
@@ -394,7 +439,7 @@ test('sets complete per-route metadata and ships product-styled legal and 404 pa
     await expect(page.locator('meta[name="twitter:card"]')).toHaveAttribute('content', 'summary_large_image');
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
     await expect(page.locator('.skip-link')).toHaveCount(1);
-    await expect(page.locator('footer')).toContainText('Built by Param Factory · v1.0.1');
+    await expect(page.locator('footer')).toContainText('Built by Param Factory · v1.0.2');
   }
   await page.goto('/404.html');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('This page was not found');

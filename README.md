@@ -46,6 +46,6 @@ Patch and undo exports contain the mapped ID heading and every changed field.
 
 ## Privacy and licensing
 
-The app has no analytics, ads, remote fonts, or third-party scripts. It uses browser storage for the theme, optional license token and verification cache, a Desk Plus workspace, and a separate resettable demo workspace. Checkout and license verification use the Sociobot billing API. A staging build can set `VITE_BILLING_API_BASE=https://pilot-api.sociobot.in/api/v1`.
+The app has no analytics, ads, remote fonts, or third-party scripts. The app stores your theme choice. It can store an optional license token and verification result. Desk Plus can save a workspace. Demo data is separate and can be reset. Checkout and license verification use the Sociobot billing API. A staging build can set `VITE_BILLING_API_BASE=https://pilot-api.sociobot.in/api/v1`.
 
 The source is MIT licensed. The generated illustration provenance and full visual specification are in [`.factory/design.md`](.factory/design.md).

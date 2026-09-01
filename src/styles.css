@@ -124,7 +124,6 @@ label > small { display: block; color: var(--muted); font-weight: 400; margin-to
 .trust-row span { display: flex; align-items: center; gap: .35rem; }
 .trust-row svg { color: var(--signal); }
 .hero-art { position: relative; margin: 0; }
-.hero-art::before { content: "N 38° / DESK 01"; position: absolute; top: -1.3rem; right: 0; color: var(--muted); font: 700 .65rem/1 var(--sans); letter-spacing: .12em; }
 .hero-art img { display: block; width: 100%; height: auto; aspect-ratio: 3/2; object-fit: cover; border: 1px solid var(--line); box-shadow: var(--shadow); clip-path: polygon(0 0, 95% 0, 100% 8%, 100% 100%, 5% 100%, 0 92%); }
 .hero-art figcaption { margin: .75rem 1rem 0; padding-left: .8rem; border-left: 3px solid var(--signal); color: var(--muted); font: italic .9rem/1.4 var(--serif); }
 .import-panel { grid-column: 1 / -1; display: grid; grid-template-columns: .8fr 1.35fr .7fr; align-items: center; gap: 2rem; margin-top: 1rem; padding: 1.5rem; border: 1px solid var(--line); border-top: 4px solid var(--moss); background: var(--surface); box-shadow: var(--shadow); }
