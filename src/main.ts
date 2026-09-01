@@ -89,7 +89,7 @@ function shell(content: string): string {
           <summary aria-label="Site navigation">${icon('menu')}</summary>
           <nav aria-label="Mobile primary"><a href="/?demo=1">Demo</a><a href="/#how-it-works">How it works</a><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a></nav>
         </details>
-        <span class="offline-chip ${state.online ? 'is-hidden' : ''}" role="status">Offline · local tools still work</span>
+        <span class="offline-chip ${state.online ? 'is-hidden' : ''}" role="status"><span>Offline</span><span class="offline-detail"> · local tools still work</span></span>
         <button class="icon-button" type="button" data-action="theme" aria-label="Use ${state.theme === 'light' ? 'dark' : 'light'} theme">${icon(state.theme === 'light' ? 'moon' : 'sun')}</button>
         <details class="license-menu">
           <summary aria-label="Desk Plus license options">${state.licenseValid ? icon('check') : icon('lock')} <span>${state.licenseValid ? 'Plus active' : 'Desk Plus'}</span></summary>

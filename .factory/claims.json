@@ -77,6 +77,13 @@
     "sandbox": "mock license verification; reload within the cached day and assert no second request"
   },
   {
+    "id": "license-request-boundary",
+    "claim": "A license check sends only the license token in a GET request with an empty body and no catalog content",
+    "where": "privacy notice",
+    "test": "npm test -- --grep @claim:license-request-boundary",
+    "sandbox": "seed representative local catalog content; mock the verification endpoint; assert its GET request has exactly the license query key, an empty body, and no catalog content in the observed request"
+  },
+  {
     "id": "no-tracking",
     "claim": "The app has no analytics, ads, tracking pixels, cookies, or third-party runtime scripts",
     "where": "README, privacy notice",

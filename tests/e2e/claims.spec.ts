@@ -105,8 +105,8 @@ test('@claim:demo-isolation demo storage never reads or overwrites a real desk s
   expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBe(realSession);
 });
 
-test('@claim:offline-reload demo reloads offline after the first visit', async ({ browser, baseURL }) => {
-  const context = await browser.newContext();
+test('@claim:offline-reload @regression:mobile-offline-status demo reloads offline after the first visit with a persistent phone status', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const page = await context.newPage();
   try {
     await page.goto(`${baseURL}/?demo=1`, { waitUntil: 'networkidle' });
@@ -121,6 +121,10 @@ test('@claim:offline-reload demo reloads offline after the first visit', async (
     await page.reload({ waitUntil: 'domcontentloaded' });
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
     await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+    const offlineStatus = page.getByRole('status');
+    await expect(offlineStatus).toBeVisible();
+    await expect(offlineStatus).toContainText('Offline · local tools still work');
+    expect(await offlineStatus.evaluate((element) => getComputedStyle(element).display)).not.toBe('none');
   } finally {
     await context.close();
   }
@@ -161,6 +165,39 @@ test('@claim:daily-license-check verifies a saved license once during its daily 
   await page.reload();
   await expect(page.locator('.license-menu summary span')).toHaveText('Plus active');
   expect(requests).toBe(1);
+});
+
+test('@claim:license-request-boundary sends only the license token in a GET request with no body or catalog content', async ({ page }) => {
+  const licenseToken = 'boundary-token-007';
+  const catalogMarker = 'private-catalog-content-must-not-leave';
+  let verificationRequest: import('@playwright/test').Request | undefined;
+  await page.addInitScript(({ marker }) => {
+    localStorage.setItem('collection-bulk-curator:session', JSON.stringify({
+      fileName: marker,
+      savedAt: 0,
+      headers: ['ID', 'Title'],
+      sourceRows: [['0007', marker]],
+      mapping: { id: 'ID', title: 'Title' },
+      changes: {}
+    }));
+  }, { marker: catalogMarker });
+  await page.route('https://api.sociobot.in/api/v1/products/collection-bulk-curator/verify?*', async (route) => {
+    verificationRequest = route.request();
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ valid: true, reason: 'ok' }) });
+  });
+
+  await page.goto(`/?license=${encodeURIComponent(licenseToken)}`);
+  await expect.poll(() => verificationRequest).toBeDefined();
+
+  const request = verificationRequest!;
+  const requestUrl = new URL(request.url());
+  const observedRequest = JSON.stringify({ url: request.url(), headers: request.headers(), body: request.postData() });
+  expect(request.method()).toBe('GET');
+  expect(requestUrl.pathname).toBe('/api/v1/products/collection-bulk-curator/verify');
+  expect([...requestUrl.searchParams.entries()]).toEqual([['license', licenseToken]]);
+  expect(request.postData()).toBeNull();
+  expect(observedRequest).not.toContain(catalogMarker);
+  await expect(page).toHaveURL('/');
 });
 
 test('@claim:no-tracking uses no third-party runtime request or cookie during the demo flow', async ({ page, context, baseURL }) => {

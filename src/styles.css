@@ -76,7 +76,7 @@ button:disabled { cursor: not-allowed; opacity: .48; }
 .site-menu nav a { min-height: 44px; padding: .55rem .75rem; display: flex; align-items: center; color: var(--ink); font-weight: 750; text-decoration: none; }
 .site-menu nav a:hover { background: var(--surface-2); }
 @media (min-width: 761px) { .site-menu { display: none; } }
-.offline-chip { padding: .45rem .75rem; background: var(--ochre); color: #17120a; font-size: .75rem; font-weight: 700; }
+.offline-chip { padding: .45rem .75rem; background: var(--ochre); color: var(--paper); font-size: .75rem; font-weight: 700; }
 .is-hidden { display: none !important; }
 .license-menu { position: relative; }
 .license-menu summary { min-height: 44px; padding: 0 1rem; display: flex; align-items: center; gap: .5rem; border: 1px solid var(--line); background: var(--surface); border-radius: 4px; list-style: none; font-weight: 700; cursor: pointer; }
@@ -246,12 +246,14 @@ th { background: var(--surface-2); font-size: .7rem; letter-spacing: .08em; text
 }
 
 @media (max-width: 760px) {
-  .site-header { min-height: 64px; padding: .35rem .75rem; }
-  .brand small, .license-menu summary span, .offline-chip { display: none; }
+  .site-header { min-height: 64px; flex-wrap: wrap; padding: .35rem .75rem; }
+  .brand small, .license-menu summary span { display: none; }
   .brand strong { font-size: .82rem; }
   .desktop-nav { display: none; }
   .license-menu summary { width: 44px; padding: 0; justify-content: center; }
   .header-actions { gap: .4rem; }
+  .offline-chip { width: 44px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center; padding: .2rem; font-size: .58rem; line-height: 1.1; letter-spacing: .04em; text-align: center; }
+  .offline-detail { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
   .demo-banner { align-items: flex-start; padding: .65rem .75rem; }
   .demo-banner div { align-items: stretch; flex-direction: column; }
   .demo-banner .button, .demo-banner .text-button { min-height: 44px; padding: .45rem .65rem; font-size: .72rem; }
