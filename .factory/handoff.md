@@ -74,10 +74,41 @@ Local screenshots and URL-check output are in
 
 ## Deployment
 
-The static release is deployed from `dist/` with
-`/opt/fleet/lib/deploy-static.sh collection-bulk-curator dist` after this
-repair commit. Live URL, response-policy, identity, and post-deployment
-verification evidence are appended after deployment.
+Deployed production static output with:
+
+```sh
+/opt/fleet/lib/deploy-static.sh collection-bulk-curator dist
+```
+
+Live URL: <https://collection-bulk-curator.sociobot.in>
+
+- Live factory URL check passed with HTTP 200 and no console/page errors.
+- Live response policy includes HSTS, `nosniff`, strict-origin referrer policy,
+  disabled camera/microphone/geolocation/payment permissions, and CSP with
+  `frame-ancestors 'none'`. Root HTML revalidates at 30 seconds and `sw.js`
+  is `no-cache`.
+- Live Playwright Axe scans at 390 px found zero serious or critical issues on
+  the start page, demo, privacy, terms, and styled 404 page. The browser’s
+  expected network message for the deliberately HTTP-404 route is recorded
+  separately from page errors.
+- Live 200%-text confirmation at 390 × 844:
+  - Start page: `390 / 390` scroll/client width; build label right edge 358 px.
+  - Populated demo: `390 / 390`; closed ledger `display:none`; first item
+    information right edge 364 px.
+- Fresh live service-worker context controlled the page with
+  `collection-batch-desk-rd91c992a442f-bc0b99f2c751`, reloaded all 32 demo
+  items offline, retained the offline status, and had no console/page errors.
+- Fresh local production output and live bytes match exactly:
+  - `index.html`:
+    `e01ab90d7a7725a83b1c6fdc9c0ddde3ad8d4ee7a786639d1de4fc06d7bf303f`
+  - `assets/index-B1GD3_C1.js`:
+    `df05658c5527a3ef16d045e2e6fb1abec8378e747ce2b26c782de201866219a0`
+  - `assets/style-Bbu86IxV.css`:
+    `d94ed827bffbcd867b77f474fdb5d48d28bf990c8431d7d4c76a437957a31d08`
+  - `sw.js`:
+    `a6beba1a9ee45a4864c63663cb25f829b8ef5520428637f6aaaffa16e72c1f38`
+
+Live evidence is in `.factory/evidence/repair-8-final-live/`.
 
 ## Known gaps
 

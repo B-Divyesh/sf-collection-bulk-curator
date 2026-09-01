@@ -1,0 +1,33 @@
+{
+  "results": [
+    {
+      "path": "/",
+      "status": 200,
+      "seriousOrCritical": []
+    },
+    {
+      "path": "/?demo=1",
+      "status": 200,
+      "seriousOrCritical": []
+    },
+    {
+      "path": "/privacy/",
+      "status": 200,
+      "seriousOrCritical": []
+    },
+    {
+      "path": "/terms/",
+      "status": 200,
+      "seriousOrCritical": []
+    },
+    {
+      "path": "/repair-8-not-found",
+      "status": 404,
+      "seriousOrCritical": []
+    }
+  ],
+  "errors": [],
+  "expected404Errors": [
+    "Failed to load resource: the server responded with a status of 404 ()"
+  ]
+}

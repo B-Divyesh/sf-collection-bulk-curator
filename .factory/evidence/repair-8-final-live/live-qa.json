@@ -1,0 +1,41 @@
+{
+  "base": "https://collection-bulk-curator.sociobot.in",
+  "start": {
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "buildRight": 358
+  },
+  "demo": {
+    "scrollWidth": 390,
+    "clientWidth": 390,
+    "ledgerDisplay": "none",
+    "itemRight": 364
+  },
+  "errors": [],
+  "cacheNames": [
+    "collection-batch-desk-rd91c992a442f-bc0b99f2c751"
+  ],
+  "bytes": {
+    "index": {
+      "local": "e01ab90d7a7725a83b1c6fdc9c0ddde3ad8d4ee7a786639d1de4fc06d7bf303f",
+      "live": "e01ab90d7a7725a83b1c6fdc9c0ddde3ad8d4ee7a786639d1de4fc06d7bf303f"
+    },
+    "/assets/survey-desk.avif": {
+      "local": "0792a34124f74080f496d310f61a9a53e0467808afab4c04ef509edeacf5d81c",
+      "live": "0792a34124f74080f496d310f61a9a53e0467808afab4c04ef509edeacf5d81c"
+    },
+    "/assets/index-B1GD3_C1.js": {
+      "local": "df05658c5527a3ef16d045e2e6fb1abec8378e747ce2b26c782de201866219a0",
+      "live": "df05658c5527a3ef16d045e2e6fb1abec8378e747ce2b26c782de201866219a0"
+    },
+    "/assets/style-Bbu86IxV.css": {
+      "local": "d94ed827bffbcd867b77f474fdb5d48d28bf990c8431d7d4c76a437957a31d08",
+      "live": "d94ed827bffbcd867b77f474fdb5d48d28bf990c8431d7d4c76a437957a31d08"
+    },
+    "/sw.js": {
+      "local": "a6beba1a9ee45a4864c63663cb25f829b8ef5520428637f6aaaffa16e72c1f38",
+      "live": "a6beba1a9ee45a4864c63663cb25f829b8ef5520428637f6aaaffa16e72c1f38"
+    }
+  },
+  "allBytesMatch": true
+}
