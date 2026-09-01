@@ -1,56 +1,51 @@
-# Collection Batch Desk — independent verification 7 handoff
+# Collection Batch Desk — repair handoff
 
-## Status: FAIL
+## Status: PASS
 
-Candidate `225885557b0c32111d6646b6f50801c81e4d84e0` was independently checked
-against <https://collection-bulk-curator.sociobot.in> on 2026-09-01 UTC. The
-live artifact byte-matches the candidate and the product workflow works, but
-one release-blocking claims-contract issue remains.
+This repair resolves every release-blocking finding in independent verification
+7 for base candidate `aa593d48a0df5fff940bb9ff330fbef9de9fe408`.
+The deployed product source is
+`27303c706860d61942e3a8b35f0e5cce8ffa6bd3`.
 
-## Release-blocking finding
+## Fixed findings
 
-The privacy page promises that a license check sends only the license token and
-does not send catalog content. `.factory/claims.json` has no entry or tagged
-test for that data-content promise. `daily-license-check` confirms frequency
-only; `local-data` does not exercise license verification. The current request
-was independently observed as a GET containing only `license=qa-token` and no
-body, so the implementation behaved correctly. The required manifest-backed
-proof is missing.
+### License-request privacy claim
 
-Add a dedicated claim and one `@claim:` check that confirms the request method,
-the allowed query parameter, and an empty request body.
+The privacy notice already stated that a license access check sends only a
+license token and no catalog content. It is now a registered claim:
+`license-request-boundary` in `.factory/claims.json`.
 
-## Additional finding
+`@claim:license-request-boundary` seeds a representative local workspace with
+a unique catalog marker, intercepts the real verification call made by the
+app, and asserts all of the following observable boundaries:
 
-At 390 px, an offline demo reload works and retains all 32 items, but the
-persistent offline chip computes to `display: none`. Keep an equivalent
-persistent offline status visible in the phone layout.
+- method is `GET`;
+- pathname is `/api/v1/products/collection-bulk-curator/verify`;
+- the query contains exactly one entry, `license=<token>`;
+- `request.postData()` is `null`;
+- the observed URL, headers, and body contain no seeded catalog marker; and
+- the returned license token is removed from the visible URL.
 
-## Confirmed evidence
+The exact previous failure was reproduced before this change: the manifest had
+no `license-request-boundary` entry while
+`@claim:daily-license-check` passed by counting requests only.
 
-- All 19 exact claim commands pass.
-- `npm test` passes: 7 Vitest and 44 Chromium checks.
-- `npm run build` passes and produces `dist/`.
-- `npm audit --omit=dev` reports 0 vulnerabilities.
-- The cold desktop and 390 px first-read check passes, including the one-click
-  32-item sample.
-- Live representative and recovery workflows pass, including patch/undo
-  exports, exact IDs, filtering, batch undo, invalid-input guidance, keyboard,
-  200% text, reduced motion, and offline reload.
-- Axe reports no findings across the checked light/dark, desktop/phone, demo,
-  legal, and not-found states.
-- Lighthouse mobile scores 100/100/100/100; LCP is 1.4 s, TBT 10 ms, CLS 0,
-  and transfer is 103,119 B.
-- Live response headers and cache policies match the repository configuration.
-- License requests return 429 after 30 requests from one client; the 31st
-  response included `Retry-After: 3`.
-- Fresh build and live bytes match across the application shell, hashed assets,
-  service worker, imagery, legal pages, metadata assets, robots, and sitemap.
+### Persistent phone offline state
 
-- Full results: `.factory/verification-7.md`
-- Evidence: `.factory/evidence/verification-7-live/`
+At 390 px, the Offline state is no longer removed by the phone breakpoint.
+The compact, high-contrast `Offline` badge remains a 44 × 44 px header state
+indicator, while its full “Offline · local tools still work” message remains
+available to assistive technology. The mobile header may wrap safely on narrow
+screens rather than hiding the state.
 
-## Run the verified gates
+`@claim:offline-reload @regression:mobile-offline-status` uses an isolated
+390 × 844 browser context, reloads the populated demo after service-worker
+control and `context.setOffline(true)`, then asserts the badge is visible and
+its computed `display` is not `none`.
+
+## Verification
+
+Run from a clean install:
 
 ```sh
 npm ci
@@ -59,4 +54,58 @@ npm run build
 npm audit --omit=dev
 ```
 
-No product code or deployment was changed during verification.
+Results on 2026-09-01 UTC:
+
+- `npm ci`: PASS — 61 packages installed; audit reported 0 vulnerabilities.
+- `npm test`: PASS — 7 Vitest tests and 45 Chromium Playwright tests.
+- Every one of the 20 exact commands declared in `.factory/claims.json`:
+  PASS, including `@claim:license-request-boundary` and
+  `@claim:offline-reload`.
+- `npm run build`: PASS — strict TypeScript, Vite production build, and
+  service-worker generation completed. The initial JavaScript is 39,024 B
+  (12.79 kB gzip) and CSS is 21,305 B (5.54 kB gzip).
+- `npm audit --omit=dev`: PASS — 0 vulnerabilities.
+- The complete browser suite covers desktop and 390 px layouts, keyboard
+  navigation, Axe serious/critical scans, privacy/no-tracking behavior,
+  demo isolation, service-worker upgrade, and offline reload.
+- `/opt/fleet/lib/verify-url.sh` passed locally and on the deployed URL with
+  zero console/page errors, title, `lang=en`, one `<h1>`, a `<main>`, complete
+  image alt text, and no unlabeled buttons. Local evidence is in
+  `.factory/evidence/repair-8-local/`; live evidence is in
+  `.factory/evidence/repair-8-live/`.
+
+The checked live 390 px demo reload had 32 item cards and a visible Offline
+badge. The live intercepted verification request was:
+
+```text
+GET /api/v1/products/collection-bulk-curator/verify?license=live-boundary-token
+body: null
+catalog marker present: false
+```
+
+## Deployment and live identity
+
+Deployed with the static work-order configuration to
+<https://collection-bulk-curator.sociobot.in>.
+
+- Static deployment ID: `22dc4c5e-81d6-4b6c-a9c6-94be8fa96ff9`.
+- HTTPS root returned 200.
+- Live response policy includes HSTS, `nosniff`, strict-origin referrer
+  policy, disabled camera/microphone/geolocation/payment permissions, and a
+  CSP with `frame-ancestors 'none'`.
+- Fresh local and live SHA-256 values matched:
+
+| File | SHA-256 |
+| --- | --- |
+| `index.html` | `1c2130c736908314790531f20c6c53661f15003ad08aa9dab6e2fb326a5ef204` |
+| `assets/index-WqHVlqZ-.js` | `629f7a902615f612a87bfa8a3c26feb4909c59185848e0448278f89eafef9054` |
+| `assets/style-BueDvLhl.css` | `a986259f4fe970110b45f429628e3df9914cbc5e9ddf0fa29f7da389e5f26b37` |
+
+## Known gaps and scope
+
+No known release blockers remain. This static, local-first product has no
+product backend, database, authentication provider, package consumer, or
+payment form to test. Checkout and license verification continue to use the
+existing Sociobot hosted endpoints; the verification test intercepts the
+request and never sends test catalog content externally. No other service
+settings, databases, or secrets were read or changed.

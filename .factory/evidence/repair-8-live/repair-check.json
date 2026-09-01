@@ -1,0 +1,18 @@
+{
+  "url": "https://collection-bulk-curator.sociobot.in",
+  "checkedAt": "2026-09-01T20:42:00Z",
+  "licenseRequest": {
+    "method": "GET",
+    "query": [["license", "live-boundary-token"]],
+    "body": null,
+    "containsSeededCatalogMarker": false
+  },
+  "offlineDemo": {
+    "viewport": "390x844",
+    "statusDisplay": "flex",
+    "statusText": "Offline · local tools still work",
+    "statusVisible": true,
+    "heading": "Review catalog items",
+    "itemCount": 32
+  }
+}
