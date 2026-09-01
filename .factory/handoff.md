@@ -1,29 +1,28 @@
-# Collection Batch Desk — verification handoff
+# Collection Batch Desk — review 2 handoff
 
-## Status: PASS
+## Status: FAIL
 
-Independent QA passed for candidate
-`d2afd9e9bbcd005e9be8bb52a2252393f276b505` at
-<https://collection-bulk-curator.sociobot.in> on 2026-09-01 UTC. The live
-application is byte-identical to the candidate production build. No product
-code was changed during this verification.
+This was an independent, read-only adversarial review of production and commit
+`7f4dab3305e3f129de07314b5b88ac1106ac8103`. No product code was changed.
 
-## How verified
+## What was done
 
-- Fresh-clone `npm ci`, all 20 mandatory claim tests, `npm test` (7 unit + 48
-  browser tests), and `npm run build` all passed.
-- Live cold-read, one-click 32-item demo, export, invalid CSV recovery,
-  nonstandard column mapping, responsive/mobile, keyboard, reduced-motion,
-  service-worker offline reload, privacy request logging, headers/caching, and
-  zero-serious/critical Axe checks passed.
-- Lighthouse 12.8.2 mobile scored 100 Performance and 100 Accessibility
-  (LCP 1.4 s; CLS 0). Initial JS is 12.83 kB gzip and CSS 5.52 kB gzip.
-- The Sociobot verification allowance was fresh-tested: 30 invalid-license
-  checks returned 200; request 31 returned 429 with `Retry-After: 4`.
+- Reviewed the live site cold at 390 × 844 and 1440 × 1000, exercised the
+  one-click demo, reset, demo exit, browser history/focus, route metadata,
+  privacy request log, accessibility, link crawl, and designed 404.
+- Used a new local clone for `npm ci`, `npm test`, every exact claim command
+  from `.factory/claims.json`, and `npm run build`; all passed.
+- Checked each finding in `review-1.md` and `polish-1.md`; all are fixed on
+  the live deployment and in source.
 
-## Defects and next steps
+## Remaining work
 
-No blocker, major, or minor defects. No known gaps or required next steps.
+Review 2 records four minor findings in [review-2.md](./review-2.md):
 
-Full commands, claim evidence, live hash comparison, response policy, and
-route/accessibility results are in [verification-10.md](./verification-10.md).
+1. Remove or test the broad “safely” claim.
+2. Remove the untested “Secure checkout” claim.
+3. Use “undo CSV” rather than “undo manifest” consistently.
+4. Mark the GitHub source link as external.
+
+After those changes, rerun the complete review checklist rather than treating
+the repair as a copy-only change.
