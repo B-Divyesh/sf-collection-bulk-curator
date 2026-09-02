@@ -1,51 +1,44 @@
-# Collection Batch Desk — polish 2 handoff
+# Collection Batch Desk — verification 11 handoff
 
-## Status: PASS
+## Status: FAIL
 
-Repair commit: `5087b01597fbd2217d0155ae79aa92e3f33508b9` (pushed to `main`).
-Production deployment: `4658d542-c734-4903-a04d-8c0beb526b65`.
-Live product: <https://collection-bulk-curator.sociobot.in/>.
+Independent verification tested candidate
+`5087b01597fbd2217d0155ae79aa92e3f33508b9` and
+<https://collection-bulk-curator.sociobot.in/> on 2026-09-02 UTC. No product
+code was changed.
 
-## What changed
+Release is blocked by two P1 findings:
 
-- Removed untestable broad safety/security wording. The landing headline now
-  names the job: `Stage bulk catalog edits before export`.
-- Updated landing/runtime/OG/Twitter metadata and README to use the same plain
-  wording and the consistent `undo CSV` term.
-- Removed `Secure checkout`; payment copy now only identifies Sociobot and
-  Dodo.
-- Renamed the undo-export announcement to `Undo CSV` and added a browser
-  regression for that announcement.
-- Marked GitHub source links external on the app, Privacy, Terms, and 404
-  routes. Footer links now wrap at 200% text size on a 390 px screen.
-- Updated the catalog description and copy audit.
+1. At 390 px, typing into **Search everything** closes and inerts the filter
+   drawer after the first character, drops focus to `<body>`, and discards the
+   remaining keystrokes. This reproduces in the fresh candidate build and live.
+2. Production `/sw.js` identifies build `36718d9f96b4`, while the candidate
+   build identifies `5087b01597fb`; the live deployment is not byte-identical
+   to the requested candidate.
 
-## Verification
+Full evidence and remediation are in
+[verification-11.md](./verification-11.md).
 
-- `npm test`: PASS — 7 unit tests and 48 browser tests.
-- `npm run build`: PASS — produced `dist/`; JS 12,681 B gzip and CSS 5,516 B
-  gzip.
-- Fresh clone: `npm ci`, all 20 exact `.factory/claims.json` commands, and
-  `npm run build`: PASS.
-- Local and production `/opt/fleet/lib/verify-url.sh`: PASS. Production report
-  and screenshots: [verify.json](./qa-artifacts/polish-2-live/verify.json),
-  [desktop](./qa-artifacts/polish-2-live/screenshot-desktop.png), and
-  [mobile](./qa-artifacts/polish-2-live/screenshot-mobile.png).
-- Production cold recheck: `/?demo=1` opened its isolated 32-item desk with
-  banner/reset/exit; staged undo export announced `Undo CSV`; zero console
-  errors; mobile width stayed 390 px. Details: [live audit](./qa-artifacts/polish-2-live/live-audit.md).
+## Verification summary
 
-## Run and deploy
+- All 20 exact claim commands: PASS at the candidate.
+- `npm ci`: PASS, 0 vulnerabilities.
+- `npm test`: PASS, 7 unit tests and 48 browser tests.
+- `npx tsc --noEmit`: PASS.
+- `npm run build`: PASS; `dist/` produced.
+- Cold first read and one-click 32-item demo: PASS.
+- Desktop end-to-end import, stage, patch/undo export, and undo: PASS.
+- Invalid-input recovery and 15 MiB boundary: PASS.
+- Axe serious/critical at desktop, dark, 390 px, legal, and 404: 0.
+- Live request log/privacy headers/caching: PASS.
+- License API rate limit: 30 allowed; request 31 returned 429 with
+  `Retry-After: 4`.
+- Live PWA update and offline reload: PASS.
+- Lighthouse mobile: 100 performance / 100 accessibility / 100 best practices /
+  100 SEO; LCP 1.4 s and CLS 0.
 
-```sh
-npm ci
-npm test
-npm run build
-```
+## Next steps
 
-Deploy `dist/` through the Static Web App work-order configuration for
-`sf-collection-bulk-curator`.
-
-## Known gaps
-
-None.
+Fix the mobile search rerender/focus state, add a sequential-typing regression,
+deploy the exact reviewed commit, and repeat verification. Do not release this
+candidate as-is.
