@@ -102,7 +102,7 @@ function shell(content: string): string {
     <main id="main" tabindex="-1">${content}</main>
     <footer>
       <span>Your catalog stays in this browser. Generated catalog review illustration.</span>
-      <nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-collection-bulk-curator" rel="noreferrer">Source</a></nav>
+      <nav aria-label="Footer"><a href="/privacy/">Privacy</a><a href="/terms/">Terms</a><a href="https://github.com/B-Divyesh/sf-collection-bulk-curator" target="_blank" rel="noreferrer">Source on GitHub (external)</a></nav>
       <span class="build-id">Built by Param Factory · ${PRODUCT_VERSION}</span>
     </footer>
     <div class="toast" aria-live="polite" aria-atomic="true">${esc(state.notice)}</div>`;
@@ -117,7 +117,7 @@ function licensePanel(): string {
       ? `<p class="success-note">${icon('check')} License verified on this device.</p><button type="button" class="text-button" data-action="forget-license">Remove license</button>`
       : `<a class="button primary full" href="${BILLING_BASE}/products/${PRODUCT_SLUG}/checkout" target="_blank" rel="noreferrer">Buy once</a>
         <form id="license-form"><label for="license-token">Have a license?</label><div class="inline-form"><input id="license-token" autocomplete="off" required placeholder="Paste license token"><button class="button secondary" type="submit" aria-label="Verify license">Verify</button></div></form>
-        <p class="micro">Secure checkout by Sociobot / Dodo. Refunds are handled by the merchant of record.</p>`}
+        <p class="micro">Sociobot and Dodo handle payment. Refunds are handled by the merchant of record.</p>`}
   </div>`;
 }
 
@@ -126,7 +126,7 @@ function importScreen(): string {
   return shell(`<section class="hero" aria-labelledby="page-title">
     <div class="hero-copy">
       <p class="eyebrow"><span>01</span> Start</p>
-      <h1 id="page-title" tabindex="-1">Stage bulk catalog edits safely</h1>
+      <h1 id="page-title" tabindex="-1">Stage bulk catalog edits before export</h1>
       <p class="lede">For collectors updating a chosen subset without losing the original catalog.</p>
       <div class="hero-actions"><button class="button primary" type="button" data-action="demo">Try it with sample data</button><p>Loads 32 sample items in the review desk.</p></div>
       <div class="trust-row"><span>${icon('lock')} Catalog stays in your browser</span><span>${icon('route')} Works offline after first visit</span><span>${icon('lock')} $19 once for Desk Plus</span></div>
@@ -253,7 +253,7 @@ function workspaceScreen(): string {
     <section class="catalog" aria-labelledby="catalog-title">
       <h2 id="catalog-title" class="catalog-heading">Catalog items</h2>
       <div class="catalog-toolbar"><div><button class="button secondary mobile-only" data-action="open-filters">${icon('filter')} Filters</button><p><b>${visible.length.toLocaleString()}</b> of ${state.rows.length.toLocaleString()} items</p></div><div><button class="text-button" data-action="select-visible">Select visible</button>${visible.length > rendered.length ? `<button class="text-button" data-action="select-matching">Select all matching</button>` : ''}<button class="text-button" data-action="clear-selection" ${state.selection.size ? '' : 'disabled'}>Clear</button></div></div>
-      ${visible.length ? `<p class="rendered-count">Showing ${rendered.length.toLocaleString()} of ${visible.length.toLocaleString()} matching items. ${visible.length > rendered.length ? 'Load more to inspect additional items before selecting them.' : ''}</p><div class="item-grid">${rendered.map(itemCard).join('')}</div>${visible.length > rendered.length ? `<button class="button secondary load-more" data-action="load-more">Show ${Math.min(CATALOG_PAGE_SIZE, visible.length - rendered.length).toLocaleString()} more items</button>` : ''}` : `<div class="empty-results">${icon('route')}<h2>No items match these filters</h2><p>Clear a filter or search for a broader term. Staged edits are still safe.</p><button class="button secondary" data-action="clear-filters">Clear filters</button></div>`}
+      ${visible.length ? `<p class="rendered-count">Showing ${rendered.length.toLocaleString()} of ${visible.length.toLocaleString()} matching items. ${visible.length > rendered.length ? 'Load more to inspect additional items before selecting them.' : ''}</p><div class="item-grid">${rendered.map(itemCard).join('')}</div>${visible.length > rendered.length ? `<button class="button secondary load-more" data-action="load-more">Show ${Math.min(CATALOG_PAGE_SIZE, visible.length - rendered.length).toLocaleString()} more items</button>` : ''}` : `<div class="empty-results">${icon('route')}<h2>No items match these filters</h2><p>Clear a filter or search for a broader term. Your staged edits remain available.</p><button class="button secondary" data-action="clear-filters">Clear filters</button></div>`}
     </section>
     <aside class="ledger ${state.ledgerOpen ? 'mobile-open' : ''}" aria-labelledby="ledger-title"><div class="rail-heading"><span>${icon('layers')}</span><div><p class="eyebrow">Changes</p><h2 id="ledger-title">Stage a field</h2></div><button class="icon-button compact-only" data-action="close-ledger" aria-label="Close change ledger">×</button></div>
       <p class="selection-count"><b>${state.selection.size.toLocaleString()}</b> selected item${state.selection.size === 1 ? '' : 's'}</p>
@@ -295,10 +295,10 @@ function updateMetadata(): void {
       ? `${PRODUCT_NAME} — map catalog columns`
       : state.screen === 'workspace'
         ? `${PRODUCT_NAME} — review catalog items`
-        : `${PRODUCT_NAME} — stage catalog edits safely`;
+        : `${PRODUCT_NAME} — stage catalog edits`;
   const description = state.demo
-    ? 'Try a 32-item sample catalog. Stage reversible edits, then export patch and undo CSV files.'
-    : 'Review and stage reversible collection edits locally, then export a patch CSV and undo manifest.';
+    ? 'Try a 32-item sample catalog. Stage edits, then export patch and undo CSV files.'
+    : 'Review catalog edits locally, then export patch and undo CSV files.';
   const url = new URL(location.href);
   if (state.demo) url.searchParams.set('demo', '1');
   else url.searchParams.delete('demo');
@@ -462,7 +462,7 @@ function startForReal(): void {
 }
 
 function bindCommon(): void {
-  document.querySelectorAll<HTMLElement>('[data-action="home"]').forEach((el) => el.addEventListener('click', (event) => { event.preventDefault(); if (state.screen === 'workspace' && Object.keys(state.changes).length && !confirm('Leave this desk? Exported files are safe, but unstored staged edits will be cleared.')) return; resetDesk(); }));
+  document.querySelectorAll<HTMLElement>('[data-action="home"]').forEach((el) => el.addEventListener('click', (event) => { event.preventDefault(); if (state.screen === 'workspace' && Object.keys(state.changes).length && !confirm('Leave this desk? Unstored staged edits will be cleared.')) return; resetDesk(); }));
   document.querySelector<HTMLElement>('[data-action="theme"]')?.addEventListener('click', () => { state.theme = state.theme === 'light' ? 'dark' : 'light'; localStorage.setItem('cbd-theme', state.theme); document.documentElement.dataset.theme = state.theme; render(); });
   document.querySelector<HTMLFormElement>('#license-form')?.addEventListener('submit', async (event) => { event.preventDefault(); const token = (document.querySelector<HTMLInputElement>('#license-token')?.value ?? '').trim(); if (!token || state.demo) return; localStorage.setItem(LICENSE_KEY, token); await verifyLicense(token, true); });
   document.querySelector<HTMLElement>('[data-action="forget-license"]')?.addEventListener('click', () => { localStorage.removeItem(LICENSE_KEY); localStorage.removeItem(LICENSE_CACHE_KEY); state.licenseValid = false; render(); announce('License removed from this device.'); });
@@ -506,7 +506,7 @@ function bindMapping(): void {
     const ids = parsed.rows.map((row) => row[mapping.id] ?? '');
     const blanks = unsafeIdCount(parsed.rows, mapping.id);
     const duplicates = ids.filter((id, index) => id !== '' && ids.indexOf(id) !== index);
-    if (blanks) { announce(`${blanks} row${blanks === 1 ? ' has' : 's have'} a blank ID. Fill them in before safe patching.`); return; }
+    if (blanks) { announce(`${blanks} row${blanks === 1 ? ' has' : 's have'} a blank ID. Fill them in before creating a patch CSV.`); return; }
     if (duplicates.length) { announce(`Duplicate ID “${duplicates[0]}” would make a patch ambiguous. Make IDs unique first.`); return; }
     state.mapping = mapping;
     state.rows = rowsFromParsed(parsed, mapping);
@@ -599,9 +599,9 @@ function exportChanges(undo: boolean): void {
   try {
     const output = buildChangeExport(state.mapping!, state.rows, state.changes, undo);
     const stem = state.fileName.replace(/\.csv$/i, '') || 'collection'; const suffix = undo ? 'undo' : 'patch'; download(`${stem}-${suffix}-${new Date().toISOString().slice(0, 10)}.csv`, toCsv(output.headers, output.rows), 'text/csv;charset=utf-8');
-    announce(`${undo ? 'Undo manifest' : 'Patch'} exported with ${output.rows.length} row${output.rows.length === 1 ? '' : 's'}.`);
+    announce(`${undo ? 'Undo CSV' : 'Patch CSV'} exported with ${output.rows.length} row${output.rows.length === 1 ? '' : 's'}.`);
   } catch (error) {
-    announce(error instanceof Error ? error.message : 'The export could not be created safely.');
+    announce(error instanceof Error ? error.message : 'The export could not be created.');
   }
 }
 

@@ -1,6 +1,6 @@
 # Collection Batch Desk
 
-Stage bulk catalog edits safely for collectors with many physical items. Import a CSV, review a filtered subset, then export a patch and an undo CSV.
+Stage bulk catalog edits before export. For collectors with many physical items, import a CSV, review a filtered subset, then export a patch and an undo CSV.
 
 The desk maps CSV headings, optionally matches local thumbnails by filename, filters visible records, and stages export-only changes. It exports a patch CSV and a separate undo CSV with original values. Blank and duplicate IDs are blocked. IDs such as `0007` remain strings throughout.
 

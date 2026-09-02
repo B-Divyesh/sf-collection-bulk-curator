@@ -1,1 +1,1 @@
-Stage bulk catalog edits, review a chosen subset, and export patch and undo CSV files.
+Stage bulk catalog edits before export, then download patch and undo CSV files.

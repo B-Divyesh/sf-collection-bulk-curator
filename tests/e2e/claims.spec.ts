@@ -17,7 +17,7 @@ async function stageFirstSampleLocation(page: Page): Promise<void> {
 async function startRealImportFromDemo(page: Page): Promise<void> {
   await page.goto('/?demo=1');
   await page.getByRole('button', { name: 'Start for real' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits before export');
 }
 
 test('@claim:sample-catalog @regression:cold-mobile-sample-action keeps the primary sample action in the first 390px viewport', async ({ page }) => {
@@ -99,7 +99,7 @@ test('@claim:demo-isolation demo storage never reads or overwrites a real desk s
   expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBe(realSession);
 
   await page.getByRole('button', { name: 'Start for real' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits before export');
   await expect(page.getByText('Demo — sample data, nothing is saved')).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem('demo:collection-bulk-curator:session'))).toBeNull();
   expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBe(realSession);

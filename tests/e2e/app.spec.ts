@@ -56,7 +56,7 @@ async function downloadedText(download: Download): Promise<string> {
 
 test('imports, stages, undoes, and exports a reversible batch', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Stage bulk catalog edits before export');
   await page.getByRole('button', { name: 'Try it with sample data' }).click();
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Review catalog items');
 
@@ -74,6 +74,7 @@ test('imports, stages, undoes, and exports a reversible batch', async ({ page })
   const undoDownload = page.waitForEvent('download');
   await page.getByRole('button', { name: /Export undo CSV/ }).click();
   expect((await undoDownload).suggestedFilename()).toContain('undo');
+  await expect(page.locator('.toast')).toContainText('Undo CSV exported with 32 rows.');
 
   await page.getByRole('button', { name: /Undo “location on 32 items”/ }).click();
   await expect(page.getByRole('button', { name: /Export patch CSV/ })).toBeDisabled();
@@ -86,7 +87,7 @@ test('focuses the current h1 after demo history and screen changes', async ({ pa
   await expect(page.locator('#page-title')).toBeFocused();
 
   await page.goBack();
-  await expect(page.locator('#page-title')).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.locator('#page-title')).toHaveText('Stage bulk catalog edits before export');
   await expect(page.locator('#page-title')).toBeFocused();
 
   await page.goForward();
@@ -96,7 +97,7 @@ test('focuses the current h1 after demo history and screen changes', async ({ pa
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.locator('#page-title')).toBeFocused();
   await page.getByRole('button', { name: 'Start for real' }).click();
-  await expect(page.locator('#page-title')).toHaveText('Stage bulk catalog edits safely');
+  await expect(page.locator('#page-title')).toHaveText('Stage bulk catalog edits before export');
   await expect(page.locator('#page-title')).toBeFocused();
 
   await page.locator('#csv-file').setInputFiles({ name: 'focus.csv', mimeType: 'text/csv', buffer: Buffer.from('ID,Title\n0007,Vase') });
@@ -304,7 +305,7 @@ test('updates its service worker and reloads the complete shell offline without 
   await expect.poll(() => page.evaluate(() => Boolean(navigator.serviceWorker.controller))).toBe(true);
   await context.setOffline(true);
   await page.reload({ waitUntil: 'domcontentloaded' });
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits before export');
   await expect(page.getByRole('status')).toContainText('Offline · local tools still work');
   expect(errors).toEqual([]);
   await context.setOffline(false);
@@ -343,10 +344,10 @@ test('@regression:pwa-upgrade replaces a persistent v3 client before its offline
     })).toBe(true);
 
     await page.reload({ waitUntil: 'networkidle' });
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits before export');
     await context.setOffline(true);
     await page.reload({ waitUntil: 'domcontentloaded' });
-    await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
+    await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits before export');
     expect(errors).toEqual([]);
   } finally {
     await context.close();
@@ -418,14 +419,14 @@ test('confirmed New catalog clears the saved Desk Plus session', async ({ page }
   await expect.poll(() => page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).not.toBeNull();
   page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'New catalog' }).click();
-  await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits safely');
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Stage bulk catalog edits before export');
   expect(await page.evaluate(() => localStorage.getItem('collection-bulk-curator:session'))).toBeNull();
   await expect(page.getByRole('button', { name: /Resume local desk/ })).toHaveCount(0);
 });
 
 test('sets complete per-route metadata and ships product-styled legal and 404 pages', async ({ page }) => {
   const routes = [
-    { path: '/', title: 'Collection Batch Desk — stage catalog edits safely', canonical: 'https://collection-bulk-curator.sociobot.in/' },
+    { path: '/', title: 'Collection Batch Desk — stage catalog edits', canonical: 'https://collection-bulk-curator.sociobot.in/' },
     { path: '/?demo=1', title: 'Demo — Collection Batch Desk', canonical: 'https://collection-bulk-curator.sociobot.in/?demo=1' },
     { path: '/privacy/', title: 'Privacy — Collection Batch Desk', canonical: 'https://collection-bulk-curator.sociobot.in/privacy/' },
     { path: '/terms/', title: 'Terms — Collection Batch Desk', canonical: 'https://collection-bulk-curator.sociobot.in/terms/' },
@@ -440,6 +441,9 @@ test('sets complete per-route metadata and ships product-styled legal and 404 pa
     await expect(page.locator('link[rel="apple-touch-icon"]')).toHaveAttribute('href', '/apple-touch-icon.png');
     await expect(page.locator('.skip-link')).toHaveCount(1);
     await expect(page.locator('footer')).toContainText('Built by Param Factory · v1.0.2');
+    const source = page.getByRole('link', { name: 'Source on GitHub (external)' });
+    await expect(source).toHaveAttribute('href', 'https://github.com/B-Divyesh/sf-collection-bulk-curator');
+    await expect(source).toHaveAttribute('target', '_blank');
   }
   await page.goto('/404.html');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('This page was not found');

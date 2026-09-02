@@ -1,8 +1,9 @@
 # Copy audit
 
-Audited 2026-09-01 for release 1.0.2. Counts treat hyphenated terms and `$19`
+Audited 2026-09-02 for release 1.0.2. Counts treat hyphenated terms and `$19`
 as one word. Fragments are marked as such. No visitor-facing sentence exceeds
-22 words, and no banned plain-words term remains.
+22 words, and no banned plain-words term or unlisted broad safety/security
+promise remains.
 
 ## Header, demo banner, license panel, and footer
 
@@ -16,17 +17,18 @@ as one word. Fragments are marked as such. No visitor-facing sentence exceeds
 | Automatically save and restore your local workspace next visit. | 9 | Pass. |
 | Core review, undo, and both exports stay free. | 8 | Pass. |
 | License verified on this device. | 5 | Pass. |
-| Secure checkout by Sociobot / Dodo. | 5 | Pass. |
+| Sociobot and Dodo handle payment. | 6 | Pass; payment disclosure. |
 | Refunds are handled by the merchant of record. | 8 | Pass. |
 | Your catalog stays in this browser. | 6 | Pass. |
 | Generated catalog review illustration. | 4 | Pass; provenance fragment. |
+| Source on GitHub (external) | 4 | Pass; external destination is named. |
 | Built by Param Factory · v1.0.2 | 6 | Pass; build fragment. |
 
 ## Landing first screen and import
 
 | Copy | Words | Result |
 | --- | ---: | --- |
-| Stage bulk catalog edits safely | 5 | Pass. |
+| Stage bulk catalog edits before export | 6 | Pass; literal job headline. |
 | For collectors updating a chosen subset without losing the original catalog. | 10 | Pass. |
 | Try it with sample data | 5 | Pass; action label. |
 | Loads 32 sample items in the review desk. | 9 | Pass. |
@@ -63,7 +65,7 @@ as one word. Fragments are marked as such. No visitor-facing sentence exceeds
 | The CSV has headings but no item rows. | 8 | Pass. |
 | The CSV could not be read. | 6 | Pass. |
 | Choose the column that contains item IDs. | 7 | Pass. |
-| Fill them in before safe patching. | 6 | Pass. |
+| Fill them in before creating a patch CSV. | 8 | Pass. |
 | Make IDs unique first. | 4 | Pass. |
 
 ## README sentence repaired in this release
@@ -74,6 +76,13 @@ as one word. Fragments are marked as such. No visitor-facing sentence exceeds
 | It can store an optional license token and verification result. | 10 | Pass. |
 | Desk Plus can save a workspace. | 6 | Pass. |
 | Demo data is separate and can be reset. | 8 | Pass. |
+
+## README opening revised in this release
+
+| Copy | Words | Result |
+| --- | ---: | --- |
+| Stage bulk catalog edits before export. | 6 | Pass; literal job statement. |
+| For collectors with many physical items, import a CSV, review a filtered subset, then export a patch and an undo CSV. | 20 | Pass. |
 
 ## Terminology
 
@@ -89,3 +98,7 @@ as one word. Fragments are marked as such. No visitor-facing sentence exceeds
 The obsolete phrases “reversible catalog fieldwork,” “one-time field kit,” and
 “smaller fieldwork batches” were removed. The decorative coordinate label was
 also removed because it gave visitors no task information.
+
+The obsolete broad word “safely,” the unsupported “Secure checkout” sentence,
+and the conflicting “undo manifest” label were removed from visitor-facing
+copy. The GitHub source link now says it is external.
