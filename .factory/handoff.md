@@ -1,28 +1,51 @@
-# Collection Batch Desk — review 2 handoff
+# Collection Batch Desk — polish 2 handoff
 
-## Status: FAIL
+## Status: PASS
 
-This was an independent, read-only adversarial review of production and commit
-`7f4dab3305e3f129de07314b5b88ac1106ac8103`. No product code was changed.
+Repair commit: `5087b01597fbd2217d0155ae79aa92e3f33508b9` (pushed to `main`).
+Production deployment: `4658d542-c734-4903-a04d-8c0beb526b65`.
+Live product: <https://collection-bulk-curator.sociobot.in/>.
 
-## What was done
+## What changed
 
-- Reviewed the live site cold at 390 × 844 and 1440 × 1000, exercised the
-  one-click demo, reset, demo exit, browser history/focus, route metadata,
-  privacy request log, accessibility, link crawl, and designed 404.
-- Used a new local clone for `npm ci`, `npm test`, every exact claim command
-  from `.factory/claims.json`, and `npm run build`; all passed.
-- Checked each finding in `review-1.md` and `polish-1.md`; all are fixed on
-  the live deployment and in source.
+- Removed untestable broad safety/security wording. The landing headline now
+  names the job: `Stage bulk catalog edits before export`.
+- Updated landing/runtime/OG/Twitter metadata and README to use the same plain
+  wording and the consistent `undo CSV` term.
+- Removed `Secure checkout`; payment copy now only identifies Sociobot and
+  Dodo.
+- Renamed the undo-export announcement to `Undo CSV` and added a browser
+  regression for that announcement.
+- Marked GitHub source links external on the app, Privacy, Terms, and 404
+  routes. Footer links now wrap at 200% text size on a 390 px screen.
+- Updated the catalog description and copy audit.
 
-## Remaining work
+## Verification
 
-Review 2 records four minor findings in [review-2.md](./review-2.md):
+- `npm test`: PASS — 7 unit tests and 48 browser tests.
+- `npm run build`: PASS — produced `dist/`; JS 12,681 B gzip and CSS 5,516 B
+  gzip.
+- Fresh clone: `npm ci`, all 20 exact `.factory/claims.json` commands, and
+  `npm run build`: PASS.
+- Local and production `/opt/fleet/lib/verify-url.sh`: PASS. Production report
+  and screenshots: [verify.json](./qa-artifacts/polish-2-live/verify.json),
+  [desktop](./qa-artifacts/polish-2-live/screenshot-desktop.png), and
+  [mobile](./qa-artifacts/polish-2-live/screenshot-mobile.png).
+- Production cold recheck: `/?demo=1` opened its isolated 32-item desk with
+  banner/reset/exit; staged undo export announced `Undo CSV`; zero console
+  errors; mobile width stayed 390 px. Details: [live audit](./qa-artifacts/polish-2-live/live-audit.md).
 
-1. Remove or test the broad “safely” claim.
-2. Remove the untested “Secure checkout” claim.
-3. Use “undo CSV” rather than “undo manifest” consistently.
-4. Mark the GitHub source link as external.
+## Run and deploy
 
-After those changes, rerun the complete review checklist rather than treating
-the repair as a copy-only change.
+```sh
+npm ci
+npm test
+npm run build
+```
+
+Deploy `dist/` through the Static Web App work-order configuration for
+`sf-collection-bulk-curator`.
+
+## Known gaps
+
+None.
