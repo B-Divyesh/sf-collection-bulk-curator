@@ -123,7 +123,7 @@
     "claim": "Search and filters narrow the visible catalog items",
     "where": "README, workspace controls",
     "test": "npm test -- --grep @claim:filter-visible-results",
-    "sandbox": "demo entry point; search a known sample title and assert only matching item cards remain visible"
+    "sandbox": "fresh 390 × 844 demo context; open Filters, type a known title with sequential keys, assert the drawer stays open and focused, and count only matching cards"
   },
   {
     "id": "source-rows-unchanged",

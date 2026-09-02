@@ -262,9 +262,17 @@ test('@claim:local-thumbnail-matching attaches a local image by its mapped filen
   await expect(page.locator('.item-image img')).toHaveAttribute('src', /^blob:/);
 });
 
-test('@claim:filter-visible-results search narrows the visible sample cards', async ({ page }) => {
+test('@claim:filter-visible-results @regression:mobile-sequential-search keeps the phone filter drawer usable while narrowing sample cards', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/?demo=1');
-  await page.getByLabel('Search everything').fill('Survey token');
+  await page.getByRole('button', { name: 'Filters', exact: true }).click();
+  const search = page.getByLabel('Search everything');
+  await search.pressSequentially('Glazed');
+
+  await expect(search).toHaveValue('Glazed');
+  await expect(search).toBeFocused();
+  await expect(page.locator('.filters')).toHaveClass(/mobile-open/);
+  expect(await page.locator('.filters').evaluate((element) => (element as HTMLElement).inert)).toBe(false);
   await expect(page.locator('.item-card')).toHaveCount(8);
   await expect(page.getByText('8 of 32 items')).toBeVisible();
 });

@@ -37,6 +37,7 @@ const state = {
   selection: new Set<string>(),
   changes: {} as Record<string, RowChanges>,
   batches: [] as ChangeBatch[],
+  filtersOpen: false,
   ledgerOpen: false,
   renderLimit: CATALOG_PAGE_SIZE,
   query: '',
@@ -241,7 +242,7 @@ function workspaceScreen(): string {
   const changedFields = Object.values(state.changes).reduce((sum, fields) => sum + Object.keys(fields).length, 0);
   return shell(`<section class="workspace" aria-labelledby="page-title">
     <div class="workspace-title"><div><p class="eyebrow"><span>03</span> Review desk · ${esc(state.fileName)}</p><h1 id="page-title" tabindex="-1">Review catalog items</h1></div><div class="desk-actions"><label class="button secondary file-button">${icon('image')} Add thumbnails<input id="image-files" type="file" accept="image/*" multiple></label><button class="button text-button" data-action="new-catalog">New catalog</button></div></div>
-    <aside class="filters" aria-labelledby="filter-title"><div class="rail-heading"><span>${icon('filter')}</span><div><p class="eyebrow">Filters</p><h2 id="filter-title">Filter items</h2></div><button class="icon-button mobile-only" data-action="close-filters" aria-label="Close filters">×</button></div>
+    <aside class="filters ${state.filtersOpen ? 'mobile-open' : ''}" aria-labelledby="filter-title"><div class="rail-heading"><span>${icon('filter')}</span><div><p class="eyebrow">Filters</p><h2 id="filter-title">Filter items</h2></div><button class="icon-button mobile-only" data-action="close-filters" aria-label="Close filters">×</button></div>
       <label for="search">Search everything</label><input id="search" type="search" value="${esc(state.query)}" placeholder="Title, ID, tag…">
       <label for="collection-filter">Collection</label><select id="collection-filter" data-filter="collection">${valueOptions('collection')}</select>
       <label for="location-filter">Location</label><select id="location-filter" data-filter="location">${valueOptions('location')}</select>
@@ -378,6 +379,7 @@ function clearDeskData(): void {
   state.selection.clear();
   state.changes = {};
   state.batches = [];
+  state.filtersOpen = false;
   state.ledgerOpen = false;
   state.renderLimit = CATALOG_PAGE_SIZE;
   state.query = '';
@@ -396,6 +398,7 @@ function loadDemoDesk(session: DemoSession | null = null): void {
   state.selection.clear();
   state.changes = session?.changes ?? {};
   state.batches = session?.batches ?? [];
+  state.filtersOpen = false;
   state.ledgerOpen = false;
   state.renderLimit = CATALOG_PAGE_SIZE;
   state.query = '';
@@ -535,9 +538,19 @@ function bindWorkspace(): void {
   const compact = matchMedia('(max-width: 1000px)').matches;
   const filtersRail = document.querySelector<HTMLElement>('.filters');
   const ledgerRail = document.querySelector<HTMLElement>('.ledger');
-  if (narrow && filtersRail) filtersRail.inert = true;
+  if (narrow && filtersRail) filtersRail.inert = !state.filtersOpen;
   if (compact && ledgerRail) ledgerRail.inert = !state.ledgerOpen;
-  document.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (event) => { state.query = (event.target as HTMLInputElement).value; const hadSelection = resetVisibleScope(); render(); requestAnimationFrame(() => { const search = document.querySelector<HTMLInputElement>('#search'); search?.focus(); search?.setSelectionRange(state.query.length, state.query.length); }); announceScopeReset(hadSelection); });
+  document.querySelector<HTMLInputElement>('#search')?.addEventListener('input', (event) => {
+    const input = event.currentTarget as HTMLInputElement;
+    state.query = input.value;
+    const caret = input.selectionStart ?? state.query.length;
+    const hadSelection = resetVisibleScope();
+    render(null);
+    const search = document.querySelector<HTMLInputElement>('#search');
+    search?.focus();
+    search?.setSelectionRange(caret, caret);
+    announceScopeReset(hadSelection);
+  });
   document.querySelectorAll<HTMLSelectElement>('[data-filter]').forEach((select) => select.addEventListener('change', () => { const key = select.dataset.filter as keyof typeof state.filters; state.filters[key] = select.value; const hadSelection = resetVisibleScope(); render(); announceScopeReset(hadSelection); }));
   document.querySelectorAll<HTMLInputElement>('[data-select-key]').forEach((input) => input.addEventListener('change', () => { updateSelectionFromDom(); render(); }));
   document.querySelector<HTMLElement>('[data-action="select-visible"]')?.addEventListener('click', () => { const rows = visibleRows().slice(0, state.renderLimit); rows.forEach((row) => state.selection.add(row.key)); render(); announce(`${rows.length} visible items selected.`); });
@@ -556,8 +569,8 @@ function bindWorkspace(): void {
   document.querySelector<HTMLElement>('[data-action="export-undo"]')?.addEventListener('click', () => exportChanges(true));
   document.querySelector<HTMLElement>('[data-action="new-catalog"]')?.addEventListener('click', () => { if (!Object.keys(state.changes).length || confirm('Clear this local desk and choose another catalog? Export first if you need these staged changes.')) resetDesk(); });
   document.querySelector<HTMLInputElement>('#image-files')?.addEventListener('change', (event) => attachImages((event.target as HTMLInputElement).files));
-  document.querySelector<HTMLElement>('[data-action="open-filters"]')?.addEventListener('click', () => { if (filtersRail) { filtersRail.inert = false; filtersRail.classList.add('mobile-open'); document.querySelector<HTMLInputElement>('#search')?.focus(); } });
-  document.querySelector<HTMLElement>('[data-action="close-filters"]')?.addEventListener('click', () => { if (filtersRail) { filtersRail.classList.remove('mobile-open'); filtersRail.inert = true; document.querySelector<HTMLElement>('[data-action="open-filters"]')?.focus(); } });
+  document.querySelector<HTMLElement>('[data-action="open-filters"]')?.addEventListener('click', () => { if (filtersRail) { state.filtersOpen = true; filtersRail.inert = false; filtersRail.classList.add('mobile-open'); document.querySelector<HTMLInputElement>('#search')?.focus(); } });
+  document.querySelector<HTMLElement>('[data-action="close-filters"]')?.addEventListener('click', () => { if (filtersRail) { state.filtersOpen = false; filtersRail.classList.remove('mobile-open'); filtersRail.inert = true; document.querySelector<HTMLElement>('[data-action="open-filters"]')?.focus(); } });
   document.querySelector<HTMLElement>('[data-action="open-ledger"]')?.addEventListener('click', () => { if (ledgerRail) { state.ledgerOpen = true; ledgerRail.inert = false; ledgerRail.classList.add('mobile-open'); document.querySelector<HTMLSelectElement>('#stage-field')?.focus(); } });
   document.querySelector<HTMLElement>('[data-action="close-ledger"]')?.addEventListener('click', () => { if (ledgerRail) { state.ledgerOpen = false; ledgerRail.classList.remove('mobile-open'); ledgerRail.inert = true; document.querySelector<HTMLElement>('[data-action="open-ledger"]')?.focus(); } });
   document.onkeydown = (event) => { if (event.key !== 'Escape') return; if (filtersRail?.classList.contains('mobile-open')) document.querySelector<HTMLElement>('[data-action="close-filters"]')?.click(); if (ledgerRail?.classList.contains('mobile-open')) document.querySelector<HTMLElement>('[data-action="close-ledger"]')?.click(); };
